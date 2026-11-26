@@ -103,6 +103,8 @@ def main():
     due_count = 0
     published_count = 0
     for post in queue:
+        if post.get("kind", "image") != "image":
+            continue  # Reels are handled by publish_reels.py
         ident = str(post.get("id", ""))
         scheduled = post.get("scheduled_at", "")
         if not ident or not scheduled:
