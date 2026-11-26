@@ -1,5 +1,12 @@
 name: Direct LinkedIn — personal profile only
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/linkedin-direct-daily.yml"
+      - "scripts/linkedin_direct_publish.py"
+      - "scripts/linkedin_oauth_local.py"
+      - "linkedin-direct-queue.json"
   schedule:
     # 10:00 and 18:00 Pakistan time, one original AI and Amazon PPC post
     # per slot, published only to the user's personal profile.
@@ -38,7 +45,7 @@ jobs:
           python-version: "3.12"
       - name: Validate direct post scripts and unique content queue
         run: |
-          python -m py_compile scripts/linkedin_direct_publish.py
+          python -m py_compile scripts/linkedin_direct_publish.py scripts/linkedin_oauth_local.py
           python - <<'PY'
           import json,datetime
           from pathlib import Path
