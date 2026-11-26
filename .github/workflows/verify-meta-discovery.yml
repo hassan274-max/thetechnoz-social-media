@@ -1,0 +1,47 @@
+name: Verify Meta hashtags and tagging safety
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-meta-discovery.yml"
+      - "scripts/meta_discovery.py"
+      - "scripts/meta_uniqueness.py"
+      - "scripts/prepare_daily.py"
+      - "scripts/prepare_animated_reels.py"
+      - "scripts/publish_meta.py"
+      - "scripts/publish_reels.py"
+      - "posts-queue.json"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run static Python and Meta caption quality tests
+        run: |
+          python3 -m py_compile scripts/meta_discovery.py scripts/meta_uniqueness.py scripts/prepare_daily.py scripts/prepare_animated_reels.py scripts/publish_meta.py scripts/publish_reels.py
+          python3 - <<'PY'
+          import json,sys,re
+          from pathlib import Path
+          sys.path.insert(0,"scripts")
+          from meta_discovery import decorate,instagram_caption,tags_for
+          from meta_uniqueness import check_queue
+          posts=json.loads(Path("posts-queue.json").read_text())["posts"]
+          check_queue(posts)
+          for p in posts:
+              if p.get("scheduled_at","") >= "2026-11-27":
+                  tags=re.findall(r"#[A-Za-z0-9_]+",p["caption"])
+                  assert len(tags)<=5,(p["id"],tags)
+                  assert "#TheTechnozSolutions" in tags
+          assert len(tags_for("AI","RAG retrieval grounding"))==5
+          assert "#RAG" in tags_for("AI","RAG retrieval grounding")
+          assert "#AmazonPPC" in tags_for("Amazon","PPC campaign bid management")
+          test=instagram_caption("OpenAI published new model tools.\n\n#TheTechnozSolutions","AI")
+          assert "@openai" in test and len(re.findall(r"#[A-Za-z0-9_]+",test))<=5
+          assert "@openai" not in instagram_caption("RAG evaluation matters.","AI")
+          assert "@amazon" in instagram_caption("Amazon Ads campaign optimization.","Amazon")
+          assert "@amazon" not in instagram_caption("Inventory forecasting best practices.","Amazon")
+          print("Meta caption discovery, mention relevance, and no-repeat checks passed")
+          PY
