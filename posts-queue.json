@@ -39,14 +39,16 @@
       "id": "2026-11-27-reel",
       "kind": "reel",
       "scheduled_at": "2026-11-27T14:00:00Z",
-      "image_url": null,
       "video_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/reel-2026-11-27.mp4",
+      "image_url": null,
       "path": "assets/reel-2026-11-27.mp4",
-      "caption": "AI + HUMAN JUDGMENT\n\nUse AI to surface patterns and prepare recommendations, then verify them against real data and business constraints.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce",
+      "caption": "RAG Is Not a Knowledge Database\n\nWhy can a RAG answer still be wrong?\n\nFind passages related to the question. Check whether those passages support the claim. Give the model the evidence and source IDs.\n\nRetrieval helps, but it never guarantees correctness.\n\nWould you trust an answer without checking its sources?\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPPC #AmazonPrivateLabel #AI",
       "platforms": [
         "facebook",
         "instagram"
-      ]
+      ],
+      "creative_version": "animated-educational-v2",
+      "editorial_id": "short-2026-11-27"
     },
     {
       "id": "2026-11-26-reel",
