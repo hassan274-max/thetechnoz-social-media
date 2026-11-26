@@ -72,8 +72,8 @@ def main():
     parser.add_argument("--description", default="")
     parser.add_argument("--expected-channel-id", default="",
                         help="Require precise channel identity before any upload")
-    parser.add_argument("--privacy", choices=["private", "unlisted"], default="private",
-                        help="Safety: testing uploads never default to public")
+    parser.add_argument("--privacy", choices=["private", "unlisted", "public"], default="private",
+                        help="Default private; public only on explicit request")
     args = parser.parse_args()
 
     creds = credentials_from_secrets()
