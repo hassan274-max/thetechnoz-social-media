@@ -42,3 +42,14 @@
 - Publication remains paused until preview and editorial approval. No paid TTS services or API keys are required.
 
 To preview: https://github.com/hassan274-max/thetechnoz-social-media/actions/workflows/youtube-scheduled.yml — Run workflow → preview → short. A push to the renderer files also triggers an automatic private preview build.
+
+## Creative diversity requirement — 27 November 2026
+
+User feedback: identical palettes, opening styles and diagrams across topics are not acceptable even when technical checks pass. The 14-episode animated preview system was redesigned with original vector motion in `scripts/short_visual_stories.py`.
+
+- Each episode now has an editorial palette and three scene-specific compositions.
+- The opening uses a rotating treatment (document problem, shopper/product scene, human/agent scene, or data-led challenge), instead of repeating one static question card.
+- Amazon scenes may feature customers, product listings, carts, warehouse stock, delivery trucks, ad/search and commercial metrics. AI episodes use libraries, evidence, language models, tests, shields, workflows, and supervised agents.
+- Existing branded typography, Kokoro voice and Q&A structure stay recognizable, but scene design should explain the actual mechanism rather than fill the background.
+- Storyboard QA: `.github/workflows/review-short-storyboards.yml` outputs a private 14×4 contact sheet covering each unique topic. Preview results are not permission to resume publication without reviewing the full narrated videos.
+- The daily public publisher has been **paused again** because user requested this creative redesign. Re-enable it only after the newly rendered batch has been reviewed and approved.
