@@ -12,11 +12,11 @@ import tempfile
 from pathlib import Path
 
 SCENES = [
-    (0.0, 4.4, "An AI answer can sound convincing, even when its evidence is missing."),
-    (4.4, 9.1, "RAG starts by searching trusted documents related to your question."),
-    (9.1, 15.0, "It selects relevant passages and sends them to the language model."),
-    (15.0, 21.2, "The model uses this context to draft an answer linked to its sources."),
-    (21.2, 27.0, "RAG improves grounding, but you should still check the cited evidence."),
+    (0.0, 4.4, "An AI answer can sound confident without evidence."),
+    (4.4, 9.1, "RAG searches trusted documents for relevant information."),
+    (9.1, 15.0, "It selects the best passages for the language model."),
+    (15.0, 21.2, "The model drafts an answer using that evidence."),
+    (21.2, 27.0, "RAG improves grounding. Always verify the sources."),
 ]
 VOICE = "am_adam"
 
