@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Prepare two original, reusable branded assets for a date.
-A daily educational photo at 11:00 PKT and a 5-second Reel at 19:00 PKT.
-Curated evergreen copy; this is NOT live LLM content generation.
+"""Prepare one nonrepeating educational IMAGE for Meta at 11:00 PKT.
+Animated videos are created separately by prepare_animated_reels.py.
+Curated evergreen copy; no repeated topic is permitted.
 """
 import argparse
 import json
@@ -103,7 +103,7 @@ def make_video(poster, output):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--day-offset",type=int,default=0)
-    ap.add_argument("--reel-only",action="store_true",help="Prepare only Reel for immediate manual test")
+
     args=ap.parse_args()
     target=datetime.now(PKT).date()+timedelta(days=args.day_offset)
     queue=json.loads(QUEUE.read_text(encoding="utf-8"))
@@ -115,14 +115,10 @@ def main():
     used={headline(p) for p in history}
     ids={p.get("id") for p in history}
     pending=[]
-    # Alternate which topic category is used for the photo vs Reel each day.
+    # Never generate the legacy 4.8-second Reel; separate animated workflow owns Reels.
     first_category="AI" if target.toordinal()%2==0 else "Amazon PL"
-    second_category="Amazon PL" if first_category=="AI" else "AI"
-    slots=[(11,"image",Path(f"assets/daily-{datekey}.png"),first_category),
-           (19,"reel",Path(f"assets/reel-{datekey}.mp4"),second_category)]
+    slots=[(11,"image",Path(f"assets/daily-{datekey}.png"),first_category)]
     for hour,kind,path,category in slots:
-        if args.reel_only and kind!="reel":
-            continue
         ident=f"{datekey}-{kind}"
         if ident in ids:
             print(f"Already queued {ident}; not generating again")
@@ -150,13 +146,7 @@ def main():
     # Validate all entries before expensive rendering or changing the queue.
     for entry,t in pending:
         path=ROOT/entry["path"]
-        if entry["kind"]=="image":
-            create_poster(path,*t[:3],square=True)
-        else:
-            frame=ROOT/Path(f"assets/reel-frame-{datekey}.png")
-            create_poster(frame,*t[:3])
-            make_video(frame,path)
-            frame.unlink()
+        create_poster(path,*t[:3],square=True)
         queue["posts"].append(entry)
     check_queue(queue["posts"])
     QUEUE.write_text(json.dumps(queue,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
