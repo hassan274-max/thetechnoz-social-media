@@ -54,8 +54,11 @@ def credentials_from_secrets():
 
 def safe_relative_file(path_text):
     candidate = (ROOT / path_text).resolve()
-    if not candidate.is_relative_to(ROOT):
-        raise RuntimeError("Upload file must be inside repository")
+    # Allow the video rendered by the trusted scheduled GitHub workflow.
+    # Do not allow arbitrary absolute paths or directories.
+    runner_video = Path("/tmp/thetechnoz-youtube-video.mp4")
+    if not candidate.is_relative_to(ROOT) and candidate != runner_video:
+        raise RuntimeError("Upload file must be in repository or approved temporary render path")
     if candidate.suffix.lower() != ".mp4" or not candidate.is_file():
         raise RuntimeError("MP4 file not found in repository: " + path_text)
     if candidate.stat().st_size < 1024:
