@@ -31,8 +31,14 @@
 - Tutorials: landscape 16:9, deeper demonstration, questions woven naturally through chapters, up to ~5–8 minutes.
 - Promotional reels may use music only; educational Shorts should use narration.
 
-## Current automation state
+## Current automation state (updated)
 
-The original catalog `scripts/youtube_editorial.py` supplies subjects and scripts but **does not** automatically generate bespoke scene-specific animation. The legacy `scripts/build_youtube_video.py` still contains static-slide drawing code and must **not** be treated as a compliant production renderer. The dedicated `scripts/render_rag_v3.py` is the current animated proof-of-concept.
+- **14 Shorts have individually authored educational Q&A motion plans** in `scripts/short_episode_specs.py`; each has its own question, visual processes, conclusion and thoughtful closing question.
+- `scripts/render_educational_short.py` renders full-frame original animations from these plans, using free Kokoro neural narration and a custom instrumental mix.
+- `scripts/build_youtube_video.py` now routes ALL Shorts to this Q&A renderer; the previous static-slide Short renderer is no longer used.
+- `.github/workflows/youtube-scheduled.yml` now installs the narrator, previews the Q&A renderer and **hard-blocks public publishing** at the planning gate.
+- **5–8-minute tutorials remain intentionally blocked**, rather than rendering the old rejected slideshow format. They need a dedicated professionally animated long-form renderer before approval.
+- **The first GitHub Actions preview and narrated audio must be visually and audibly reviewed.** Source-code integration does not by itself establish that an MP4 successfully rendered or meets the creative bar.
+- Publication remains paused until preview and editorial approval. No paid TTS services or API keys are required.
 
-**Automated YouTube publishing remains paused** until a general topic-aware animation pipeline meeting the above standard exists and is creatively approved. Never restart scheduled publishing simply because GitHub Actions and codec tests succeed.
+To preview: https://github.com/hassan274-max/thetechnoz-social-media/actions/workflows/youtube-scheduled.yml — Run workflow → preview → short. A push to the renderer files also triggers an automatic private preview build.
