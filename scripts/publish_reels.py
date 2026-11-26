@@ -5,6 +5,7 @@ Uses the existing Meta Page token and the same published-ID ledger as images.
 import json, os, sys, time, urllib.request, urllib.error
 from datetime import datetime, timezone
 from publish_meta import ROOT, QUEUE, LOG, TOKEN, ENABLED, DRY_RUN, IG_ID, graph, save, load, ensure_manifest, utcnow
+from meta_uniqueness import check_queue
 
 def check_video(url):
     if not url.startswith("https://"):
@@ -62,6 +63,8 @@ def main():
     if not TOKEN and not DRY_RUN:
         sys.exit("Missing META_PAGE_ACCESS_TOKEN")
     queue=load(QUEUE,{"posts":[]}).get("posts",[])
+    # Fail closed before any API publication if queued content repeats.
+    check_queue(queue)
     ledger=load(LOG,{"posts":{}})
     failures=[]
     for post in queue:
