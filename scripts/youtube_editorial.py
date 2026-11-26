@@ -49,8 +49,8 @@ TUTORIALS = [
 ]
 
 def scheduled_topic(day):
-    # Start Monday 30 November 2026, 14 Shorts through 13 December.
-    start=date(2026,11,30)
+    # Start Friday 27 November 2026, 14 Shorts through 10 December.
+    start=date(2026,11,27)
     index=(day-start).days
     if index < 0:
         return None
@@ -61,9 +61,9 @@ def scheduled_topic(day):
             "title":title,"angle":angle,"narration":body,"takeaway":takeaway}
 
 def scheduled_tutorial(day):
-    # Saturday each week, 5 Dec and 12 Dec.
+    # Saturday each week, 28 Nov and 5 Dec.
     if day.weekday()!=5:return None
-    first=date(2026,12,5)
+    first=date(2026,11,28)
     index=(day-first).days//7
     if day<first or index>=len(TUTORIALS):return None
     kind,title,chapters=TUTORIALS[index]
