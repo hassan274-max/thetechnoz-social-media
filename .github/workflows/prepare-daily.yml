@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/prepare-daily.yml"
+      - "scripts/prepare_daily.py"
+      - "scripts/meta_uniqueness.py"
   schedule:
     # 09:00 PKT (04:00 UTC); prepare today's 11AM image and 7PM Reel
     - cron: "0 4 * * *"
@@ -22,6 +24,7 @@ on:
         options: ["1", "0"]
 permissions:
   contents: write
+  issues: write
 concurrency:
   group: thetechnoz-content-preparation
   cancel-in-progress: false
@@ -45,6 +48,15 @@ jobs:
             python3 scripts/prepare_daily.py --day-offset "$DAY_OFFSET" --reel-only
           else
             python3 scripts/prepare_daily.py --day-offset "$DAY_OFFSET"
+          fi
+      - name: Notify owner when fresh content cannot be prepared
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Action required: Meta content preparation stopped"
+          if ! gh issue list --state open --json title --jq '.[].title' | grep -Fxq "$TITLE"; then
+            gh issue create --title "$TITLE" --body "Automated Facebook/Instagram content preparation failed. The content generator now refuses to repeat past topics or creatives. Review the failed GitHub Actions run and add fresh, original topics before resuming. Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
       - name: Commit prepared assets and queue
         run: |
