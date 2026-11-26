@@ -1,10 +1,5 @@
-name: Scheduled TheTechnoz YouTube Shorts and Tutorials
+name: YouTube development preview (automatic publication paused)
 on:
-  schedule:
-    # One educational Short daily at 18:00 PKT (13:00 UTC)
-    - cron: "0 13 * * *"
-    # Weekly tutorial on Saturday at 15:00 PKT (10:00 UTC)
-    - cron: "0 10 * * 6"
   push:
     branches: [main]
     paths:
@@ -19,7 +14,7 @@ on:
         required: true
         type: choice
         default: preview
-        options: [preview, publish_due]
+        options: [preview]
       kind:
         description: "Used only for preview (short or tutorial)"
         required: true
