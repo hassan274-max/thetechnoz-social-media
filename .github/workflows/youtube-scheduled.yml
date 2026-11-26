@@ -74,7 +74,7 @@ jobs:
           # For manual preview use first available catalog entry instead of
           # attempting to publish a not-yet-due episode.
           if mode=='preview':
-              day=date(2026,12,5) if kind=='tutorial' else date(2026,11,30)
+              day=date(2026,11,28) if kind=='tutorial' else date(2026,11,27)
           else:
               day=today
           doc=scheduled_tutorial(day) if kind=='tutorial' else scheduled_topic(day)
