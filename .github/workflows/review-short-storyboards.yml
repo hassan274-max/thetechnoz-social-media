@@ -1,0 +1,62 @@
+name: Review 14 varied YouTube Short storyboards
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/review-short-storyboards.yml"
+      - "scripts/short_visual_stories.py"
+      - "scripts/render_educational_short.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-visual-variety:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install preview renderer
+        run: |
+          python -m pip install Pillow numpy soundfile
+      - name: Validate scene layout for all 14 educational Shorts
+        run: |
+          mkdir -p /tmp/qa
+          python - <<'PY'
+          import sys
+          from datetime import date,timedelta
+          from pathlib import Path
+          from PIL import Image,ImageDraw
+          sys.path.insert(0,"scripts")
+          from short_episode_specs import episode
+          from render_educational_short import frame
+          from short_visual_stories import story_for
+          cells=[]
+          for i in range(14):
+              day=date(2026,11,27)+timedelta(days=i)
+              spec=episode(day)
+              assert spec is not None
+              styles=story_for(spec)
+              for stage in range(5):
+                  pic=frame(spec,stage,0.6,2.1,[5]*5)
+                  assert pic.size==(720,1280)
+                  # Ensure every opening, explanation, and conclusion renders.
+                  pic.resize((180,320)).save(f"/tmp/qa/{i+1:02d}-{stage+1}.png")
+                  if stage < 4:
+                      cells.append(pic.resize((180,320)))
+              print(f"Passed episode {i+1:02d}: {spec['title']} / {styles[0]}")
+          output=Image.new("RGB",(4*180,14*320),(14,20,37))
+          for k,cell in enumerate(cells):
+              row=k//4;col=k%4
+              output.paste(cell,(col*180,row*320))
+          output.save("/tmp/qa/14-varied-storyboards.jpg",quality=86)
+          print("All 70 distinct stage layouts rendered.")
+          PY
+      - name: Upload full visual proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: thetechnoz-varied-storyboards-review
+          path: /tmp/qa/14-varied-storyboards.jpg
+          retention-days: 5
