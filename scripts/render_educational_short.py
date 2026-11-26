@@ -11,6 +11,7 @@ import numpy as np
 import soundfile as sf
 from PIL import Image, ImageDraw, ImageFont
 from short_episode_specs import episode
+from short_visual_stories import story_for, draw as draw_story, intro as draw_intro
 
 W,H,FPS=720,1280,18
 BG=(6,18,37);FG=(246,252,255);CYAN=(84,222,244)
@@ -150,46 +151,47 @@ def visual(d,kind,t):
         raise RuntimeError("Unreviewed animation type: "+str(kind))
 
 def frame(spec,stage,progress,t,durations):
-    im=Image.new("RGB",(W,H),BG);d=ImageDraw.Draw(im)
+    theme=story_for(spec)
+    accent,secondary,base=theme[4],theme[5],theme[6]
+    im=Image.new("RGB",(W,H),base);d=ImageDraw.Draw(im)
     for y in range(H):
-        d.line((0,y,W,y),fill=(6+int(8*y/H),18+int(15*y/H),37+int(16*y/H)))
-    for x in range(60,W,120):d.line((x,170,x,1100),fill=(19,41,60),width=1)
+        d.line((0,y,W,y),fill=tuple(min(255,c+int(y/H*13)) for c in base))
+    # Soft radial accents support distinctive editorial color per episode.
+    for k in range(5):
+        x=76+k*134
+        d.line((x,190,x,1020),fill=tuple(min(255,c+17) for c in base),width=1)
     d.text((44,43),"THE TECHNOZ SOLUTIONS",font=font(25),fill=FG)
-    d.text((44,84),"WHERE AI MEETS BUSINESS",font=font(17,False),fill=CYAN)
+    d.text((44,84),"WHERE AI MEETS BUSINESS",font=font(17,False),fill=accent)
     category=spec["category"].upper()
-    d.rounded_rectangle((490,73,673,116),radius=14,fill=(25,70,92))
-    d.text((512,84),category if len(category)<12 else "TECH",font=font(16),fill=MINT)
+    d.rounded_rectangle((490,73,673,116),radius=14,fill=tuple(min(255,c+30) for c in base))
+    d.text((512,84),category if len(category)<12 else "TECH",font=font(16),fill=secondary)
     for i in range(5):
         a=45+i*128;b=a+111
         d.rounded_rectangle((a,166,b,174),radius=4,fill=(26,66,85))
         if i<stage or i==stage:
             d.rounded_rectangle((a,166,a+max(4,int(111*(1 if i<stage else clamp(progress)))),174),
-                                radius=4,fill=MINT)
+                                radius=4,fill=accent)
     if stage==0:
-        center(d,248,"THE QUESTION",27,CYAN)
-        blocks(d,spec["question"],360,37,FG,16)
-        card(d,(243,700,478,930),border=MINT)
-        center(d,747,"?",132,MINT)
-        a=clamp((t-.2)/1.1)
-        for k in range(5):
-            theta=k*2*math.pi/5+t*.8
-            x=360+168*math.cos(theta)*a;y=809+168*math.sin(theta)*a
-            d.ellipse((x-8,y-8,x+8,y+8),fill=CYAN)
+        openings=("THE CHALLENGE","WHAT IF?","A QUESTION FOR YOU","LET'S INVESTIGATE")
+        index=(date.fromisoformat(spec["id"][6:])-date(2026,11,27)).days
+        center(d,248,openings[index%4],27,accent)
+        blocks(d,spec["question"],339,34,FG,14)
+        draw_intro(d,spec,t)
     elif stage<=3:
         label,spoken,kind=spec["scenes"][stage-1]
-        center(d,246,f"STEP {stage}: {label}",29,CYAN)
-        visual(d,kind,t)
-        card(d,(39,927,681,1058),border=(46,111,141),fill=(15,41,63))
-        blocks(d,spoken,958,27,FG,10,600)
+        center(d,246,f"{label}",31,accent)
+        draw_story(d,spec,stage-1,t)
+        card(d,(39,931,681,1060),border=accent,fill=tuple(min(255,c+15) for c in base))
+        blocks(d,spoken,958,25,FG,9,600)
     else:
-        center(d,249,"THE TAKEAWAY",27,CYAN)
-        blocks(d,spec["spoken_takeaway"],356,32,MINT,14)
-        card(d,(52,644,668,904),border=CYAN)
-        center(d,688,"YOUR TURN",24,CYAN)
+        center(d,249,"THE TAKEAWAY",27,accent)
+        blocks(d,spec["spoken_takeaway"],356,32,secondary,14)
+        card(d,(52,644,668,904),border=accent)
+        center(d,688,"YOUR TURN",24,accent)
         blocks(d,spec["closing_question"],757,28,FG,10,560)
         for i in range(4):
             x=150+i*125
-            d.ellipse((x-10,968-6*math.sin(t*3+i),x+10,988-6*math.sin(t*3+i)),fill=MINT)
+            d.ellipse((x-10,968-6*math.sin(t*3+i),x+10,988-6*math.sin(t*3+i)),fill=secondary)
     d.text((46,1124),"TheTechnoz Solutions  •  Where AI Meets Business",font=font(16,False),fill=MUTED)
     return im
 
