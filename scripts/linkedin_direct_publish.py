@@ -118,7 +118,20 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--slot",choices=["ai","amazon"],required=True)
     ap.add_argument("--dry-run",action="store_true")
+    ap.add_argument("--verify-connection",action="store_true",help="Verify the token and authenticated personal member without posting")
     args=ap.parse_args()
+    if args.verify_connection:
+        personal=author(PERSON)
+        req=urllib.request.Request("https://api.linkedin.com/v2/userinfo",headers={"Authorization":"Bearer "+token()})
+        try:
+            with urllib.request.urlopen(req,timeout=20) as response:
+                claimed=json.load(response).get("sub","")
+        except urllib.error.HTTPError as exc:
+            raise RuntimeError("LinkedIn identity check rejected token: HTTP "+str(exc.code)) from None
+        if personal!="urn:li:person:"+claimed:
+            raise RuntimeError("LinkedIn token belongs to a different personal account")
+        print("VERIFIED personal LinkedIn OAuth identity; no post uploaded")
+        return
     q,log=load()
     p=due_post(args.slot)
     if p is None:return
