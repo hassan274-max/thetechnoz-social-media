@@ -107,7 +107,7 @@ def render(doc,out):
         # Two focused segments avoid repeating the same point three times.
         # Target one coherent ~20-30 second educational Short.
         text=doc["narration"].strip()
-        sentences=re.split(r"(?<=[.!?])\\s+",text)
+        sentences=re.split(r"(?<=[.!?])\s+",text)
         if len(sentences)>1:
             pivot=max(1,len(sentences)//2)
             first=" ".join(sentences[:pivot])
