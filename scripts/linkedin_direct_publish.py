@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Direct LinkedIn personal + organization publisher via official Posts API.
+"""Direct LinkedIn personal-profile publisher via official Posts API.
 
-No Metricool. Publish the same approved educational topic to both owned
-destinations once each. Fail closed on missing scopes, connectivity errors,
+No Metricool. Publish approved educational topics only to the personal profile.
+Fail closed on missing scopes, connectivity errors,
 ambiguous uploads and duplicate claim records. No silent retries.
 Run only inside the scheduled trusted GitHub Actions workflow.
 """
@@ -21,8 +21,7 @@ ROOT=Path(__file__).resolve().parents[1]
 QUEUE=ROOT/"linkedin-direct-queue.json"
 LEDGER=ROOT/"linkedin-direct-log.json"
 PERSON="personal"
-PAGE="company"
-TARGETS=(PERSON,PAGE)
+TARGETS=(PERSON,)
 PKT=dt.timezone(dt.timedelta(hours=5))
 VERSION="202609"
 URL="https://api.linkedin.com/rest/posts"
@@ -70,9 +69,10 @@ def due_post(slot):
     return p
 
 def author(target):
-    key="LINKEDIN_PERSON_URN" if target==PERSON else "LINKEDIN_ORGANIZATION_URN"
-    urn=os.getenv(key,"").strip()
-    pattern=r"urn:li:person:[A-Za-z0-9_-]+" if target==PERSON else r"urn:li:organization:[0-9]+"
+    if target!=PERSON:
+        raise RuntimeError("Company Page publishing is not in scope")
+    urn=os.getenv("LINKEDIN_PERSON_URN","").strip()
+    pattern=r"urn:li:person:[A-Za-z0-9_-]+"
     if not re.fullmatch(pattern,urn):
         raise RuntimeError("Missing verified LinkedIn "+target+" author URN")
     return urn
@@ -108,7 +108,7 @@ def post(target,p):
                 raise RuntimeError("LinkedIn did not acknowledge post creation")
             post_id=response.headers.get("x-restli-id","").strip()
             if not post_id:
-                raise RuntimeError("LinkedIn acknowledged post without an ID; inspect both feeds before retry")
+                raise RuntimeError("LinkedIn acknowledged post without an ID; inspect personal feed before retry")
             return post_id
     except urllib.error.HTTPError as exc:
         # No response body: API error bodies could include private metadata.
@@ -123,12 +123,12 @@ def main():
     p=due_post(args.slot)
     if p is None:return
     if args.dry_run:
-        print("Safe dry run:",p["id"],"destinations: personal, company")
+        print("Safe dry run:",p["id"],"destination: personal")
         return
     if os.environ.get("LINKEDIN_DIRECT_ENABLED","").lower()!="true":
         print("LinkedIn direct publishing is not enabled. No API post attempted.")
         return
-    # Require both author IDs before beginning any side effects.
+    # Require the authorized personal member ID before any side effects.
     for t in TARGETS:author(t)
     token()
     for target in TARGETS:
