@@ -29,11 +29,12 @@
       "image_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/daily-2026-11-27.png",
       "video_url": null,
       "path": "assets/daily-2026-11-27.png",
-      "caption": "WATCH UNIT SALES\n\nWhen reviewing Amazon campaigns, compare units sold, ad spend, conversion rate and profit—not just order count.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce",
+      "caption": "WATCH UNIT SALES\n\nWhen reviewing Amazon campaigns, compare units sold, ad spend, conversion rate and profit—not just order count.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #AmazonPPC #AmazonAdvertising #ConversionRate #AmazonPrivateLabel",
       "platforms": [
         "facebook",
         "instagram"
-      ]
+      ],
+      "topic_category": "Amazon"
     },
     {
       "id": "2026-11-27-reel",
@@ -42,13 +43,14 @@
       "video_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/reel-2026-11-27.mp4",
       "image_url": null,
       "path": "assets/reel-2026-11-27.mp4",
-      "caption": "RAG Is Not a Knowledge Database\n\nWhy can a RAG answer still be wrong?\n\nFind passages related to the question. Check whether those passages support the claim. Give the model the evidence and source IDs.\n\nRetrieval helps, but it never guarantees correctness.\n\nWould you trust an answer without checking its sources?\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPPC #AmazonPrivateLabel #AI",
+      "caption": "RAG Is Not a Knowledge Database\n\nWhy can a RAG answer still be wrong?\n\nFind passages related to the question. Check whether those passages support the claim. Give the model the evidence and source IDs.\n\nRetrieval helps, but it never guarantees correctness.\n\nWould you trust an answer without checking its sources?\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #RAG #LLM #AIResearch #ArtificialIntelligence",
       "platforms": [
         "facebook",
         "instagram"
       ],
       "creative_version": "animated-educational-v2",
-      "editorial_id": "short-2026-11-27"
+      "editorial_id": "short-2026-11-27",
+      "topic_category": "AI"
     },
     {
       "id": "2026-11-26-reel",
@@ -70,11 +72,12 @@
       "image_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/daily-2026-11-28.png",
       "video_url": null,
       "path": "assets/daily-2026-11-28.png",
-      "caption": "AUTOMATE THE BORING WORK\n\nAI automation works best when a process is clearly defined. Start with one repetitive task, measure the time saved, and expand only when results are reliable.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce",
+      "caption": "AUTOMATE THE BORING WORK\n\nAI automation works best when a process is clearly defined. Start with one repetitive task, measure the time saved, and expand only when results are reliable.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #AIAutomation #ArtificialIntelligence #AIAgents #MachineLearning",
       "platforms": [
         "facebook",
         "instagram"
-      ]
+      ],
+      "topic_category": "AI"
     },
     {
       "id": "2026-11-28-reel",
@@ -83,11 +86,12 @@
       "image_url": null,
       "video_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/reel-2026-11-28.mp4",
       "path": "assets/reel-2026-11-28.mp4",
-      "caption": "CLICKS ARE NOT SALES\n\nHigh traffic with low conversion? Check search-term relevance, pricing, reviews, delivery promise and listing quality before increasing your PPC budget.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce",
+      "caption": "CLICKS ARE NOT SALES\n\nHigh traffic with low conversion? Check search-term relevance, pricing, reviews, delivery promise and listing quality before increasing your PPC budget.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #AmazonPPC #ConversionRate #AmazonAdvertising #AmazonPrivateLabel",
       "platforms": [
         "facebook",
         "instagram"
-      ]
+      ],
+      "topic_category": "Amazon"
     }
   ]
 }
