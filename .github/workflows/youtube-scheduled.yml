@@ -17,6 +17,10 @@ on:
         type: choice
         default: preview
         options: [preview]
+      episode_date:
+        description: "Optional Short episode date (YYYY-MM-DD); leave blank to cycle through the 14 topics"
+        required: false
+        type: string
       kind:
         description: "Short previews supported; tutorials require separate new renderer"
         required: true
@@ -40,6 +44,8 @@ jobs:
       EVENT_SCHEDULE: ${{ github.event.schedule }}
       MANUAL_MODE: ${{ inputs.mode }}
       MANUAL_KIND: ${{ inputs.kind }}
+      MANUAL_EPISODE_DATE: ${{ inputs.episode_date }}
+      RUN_NUMBER: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
       - name: Install renderer, narrator and YouTube API
@@ -86,14 +92,29 @@ jobs:
           else:
               kind='short'
               mode='preview'
-          # For manual preview use first available catalog entry instead of
-          # attempting to publish a not-yet-due episode.
+          # Preview never hardcodes the original RAG episode.
+          # Explicit dates select a specific reviewed episode; otherwise
+          # successive workflow runs cycle through all 14 topics.
           if mode!='preview':
-              raise SystemExit("PUBLIC PUBLISHING DISABLED: only a private creative preview is permitted")
-          if mode=='preview':
-              day=date(2026,11,28) if kind=='tutorial' else date(2026,11,27)
+              raise SystemExit("PUBLIC PUBLISHING DISABLED: only private creative previews are permitted")
+          requested=os.environ.get('MANUAL_EPISODE_DATE','').strip()
+          if kind=='tutorial':
+              raise SystemExit("Tutorial rendering is not approved; no legacy slideshow fallback")
+          if requested:
+              try:
+                  day=date.fromisoformat(requested)
+              except ValueError:
+                  raise SystemExit("Invalid episode_date; expected YYYY-MM-DD")
           else:
-              day=today
+              start=date(2026,11,27)
+              number=int(os.environ.get('RUN_NUMBER') or 20)
+              index=(number-19)%14
+              day=start+timedelta(days=index)
+          from short_episode_specs import episode
+          spec=episode(day)
+          if not spec:
+              raise SystemExit(f"No reviewed animation for date {day}")
+          print(f"Selected unique preview topic: {spec['category']} | {spec['title']} | {spec['question']}")
           doc=scheduled_tutorial(day) if kind=='tutorial' else scheduled_topic(day)
           ledger_path=Path('youtube-publishing-log.json')
           ledger=json.loads(ledger_path.read_text()) if ledger_path.exists() else {'posts':{}}
@@ -125,7 +146,7 @@ jobs:
         if: steps.plan.outputs.ready == 'true' && steps.plan.outputs.mode == 'preview'
         uses: actions/upload-artifact@v4
         with:
-          name: thetechnoz-${{ steps.plan.outputs.kind }}-preview
+          name: thetechnoz-${{ steps.plan.outputs.kind }}-${{ steps.plan.outputs.date }}-preview
           path: |
             /tmp/thetechnoz-youtube-video.mp4
             /tmp/thetechnoz-youtube-video.json
