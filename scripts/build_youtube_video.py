@@ -64,10 +64,23 @@ def slide(filepath,category,title,body,footer,wide=False):
     filepath.parent.mkdir(parents=True,exist_ok=True)
     im.save(filepath,optimize=True)
 
+_NARRATOR = None
+
 def speech(text,wav,rate=142):
-    run(["espeak-ng","-v","en-us","-s",str(rate),"-p","46","-a","135","-w",str(wav),text])
+    """Use free Kokoro neural narration; fail rather than use robotic fallback."""
+    global _NARRATOR
+    from kokoro_onnx import Kokoro
+    import soundfile as sf
+    model=Path(os.getenv("KOKORO_MODEL","kokoro-v1.0.onnx"))
+    voices=Path(os.getenv("KOKORO_VOICES","voices-v1.0.bin"))
+    if not model.is_file() or not voices.is_file():
+        raise RuntimeError("Kokoro model not available; voice generation cannot continue")
+    if _NARRATOR is None:
+        _NARRATOR=Kokoro(str(model),str(voices))
+    samples,sample_rate=_NARRATOR.create(text,voice="am_adam",speed=1.0,lang="en-us")
+    sf.write(str(wav),samples,sample_rate)
     if not wav.exists() or wav.stat().st_size<500:
-        raise RuntimeError("Narration generation failed")
+        raise RuntimeError("Neural narration generation failed")
 
 def duration(path):
     raw=run(["ffprobe","-v","error","-show_entries","format=duration",
