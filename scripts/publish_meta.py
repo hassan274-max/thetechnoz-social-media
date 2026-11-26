@@ -12,6 +12,7 @@ import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
 from meta_uniqueness import check_queue
+from meta_discovery import instagram_caption
 
 ROOT = Path(__file__).resolve().parents[1]
 QUEUE = ROOT / "posts-queue.json"
@@ -145,7 +146,8 @@ def main():
                     result = graph("POST", f"{PAGE_ID}/photos", {"url": img, "caption": caption, "published": "true"})
                     media_id = result.get("post_id") or result["id"]
                 else:
-                    container = graph("POST", f"{IG_ID}/media", {"image_url": img, "caption": caption})
+                    ig_caption=instagram_caption(caption,post.get("topic_category") or caption.splitlines()[0])
+                    container = graph("POST", f"{IG_ID}/media", {"image_url": img, "caption": ig_caption})
                     container_id = container["id"]
                     for attempt in range(9):
                         check = graph("GET", container_id, {"fields": "status_code"})
