@@ -1,4 +1,15 @@
 {
-  "description": "Add approved posts here. All dates are UTC in ISO 8601 format. Queue is intentionally empty until the owner approves and schedules content.",
-  "posts": []
+  "description": "Approved publishing queue for TheTechnoz Solutions. Instagram introduction only; Facebook introduction was already published.",
+  "posts": [
+    {
+      "id": "intro-instagram-2026-11-26",
+      "scheduled_at": "2026-11-26T00:00:00Z",
+      "image_url": "https://hassan274-max.github.io/thetechnoz-social-media/thetechnoz-introduction.png",
+      "path": "thetechnoz-introduction.png",
+      "caption": "🚀 Introducing TheTechnoz Solutions!\n\nWe’re excited to introduce TheTechnoz Solutions, focused on Artificial Intelligence, AI-powered products, business consultation, and e-commerce solutions.\n\n🤖 AI & Technology: AI automation, SaaS development, LLM integration, and technology consultation.\n\n📦 E-commerce & Amazon Private Label: Product research, sourcing, launches, Amazon PPC, SEO, listing optimization, and brand growth.\n\nOur goal is simple: help businesses grow by combining practical industry experience with AI-driven innovation.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #AISolutions #AmazonPrivateLabel #Ecommerce #AmazonPPC #BusinessAutomation",
+      "platforms": [
+        "instagram"
+      ]
+    }
+  ]
 }
