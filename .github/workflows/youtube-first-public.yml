@@ -1,0 +1,70 @@
+name: Publish first TheTechnoz YouTube Short
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/youtube-first-public.yml"
+permissions:
+  contents: write
+concurrency:
+  group: thetechnoz-youtube-first-public
+  cancel-in-progress: false
+jobs:
+  publish-first-short:
+    runs-on: ubuntu-latest
+    env:
+      YOUTUBE_CLIENT_SECRET_JSON: ${{ secrets.YOUTUBE_CLIENT_SECRET_JSON }}
+      YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check one-time marker and video source
+        id: check
+        run: |
+          if [[ -f youtube-first-upload-result.json ]]; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "First Short already recorded. Skipping duplicate upload."
+          else
+            test -s assets/reel-2026-11-26.mp4
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install YouTube client and video validation
+        if: steps.check.outputs.already_published != 'true'
+        run: |
+          python3 -m pip install --user google-api-python-client google-auth google-auth-httplib2
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          ffprobe -v error -show_entries stream=codec_type,codec_name:format=duration -of json assets/reel-2026-11-26.mp4
+      - name: Publish original Amazon PL tip as public Short
+        if: steps.check.outputs.already_published != 'true'
+        run: |
+          set -euo pipefail
+          python3 scripts/youtube_uploader.py \
+            --upload \
+            --file "assets/reel-2026-11-26.mp4" \
+            --title "Amazon Listing Images: Clarity Wins | TheTechnoz Solutions #Shorts" \
+            --description "Amazon private label tip: clearer product images help shoppers understand your offer. Review your main image, product value and competing listings before changing your advertising strategy.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#AmazonPrivateLabel #Ecommerce #AmazonPPC #Shorts" \
+            --expected-channel-id "UCIwmarXnoB7vvssN9OxEeDA" \
+            --privacy public | tee /tmp/thetechnoz-first-youtube.log
+          python3 - <<'PY'
+          import json, pathlib, re
+          logs=pathlib.Path("/tmp/thetechnoz-first-youtube.log").read_text()
+          match=re.search(r"UPLOAD SUCCESS: (https://www.youtube.com/watch\?v=[A-Za-z0-9_-]+)",logs)
+          if not match:
+              raise SystemExit("Upload result URL missing; check YouTube Studio before any retry.")
+          pathlib.Path("youtube-first-upload-result.json").write_text(
+              json.dumps({
+                  "channel_id":"UCIwmarXnoB7vvssN9OxEeDA",
+                  "title":"Amazon Listing Images: Clarity Wins | TheTechnoz Solutions #Shorts",
+                  "video_url":match.group(1),
+                  "requested_privacy":"public",
+                  "file":"assets/reel-2026-11-26.mp4"
+              },indent=2)+"\n")
+          PY
+      - name: Record first video URL in GitHub
+        if: steps.check.outputs.already_published != 'true' && success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add youtube-first-upload-result.json
+          git commit -m "chore: record first YouTube Short upload"
+          git push
