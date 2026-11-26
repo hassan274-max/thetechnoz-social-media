@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/validate-all-shorts.yml"
+      - "scripts/short_visual_stories.py"
+      - "scripts/render_educational_short.py"
+      - "scripts/short_episode_specs.py"
 permissions:
   contents: read
 jobs:
