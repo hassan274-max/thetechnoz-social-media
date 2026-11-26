@@ -56,6 +56,21 @@ def graph(method, endpoint, params):
         raise RuntimeError(f"Graph API returned error code {result['error'].get('code')}")
     return result
 
+
+def check_image(url):
+    """Validate public image URL before attempting publication."""
+    req = urllib.request.Request(url, headers={"User-Agent": "TheTechnozSocialPublisher/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            mime = response.headers.get("Content-Type", "").split(";")[0].lower()
+            magic = response.read(16)
+            if response.status != 200 or mime not in ("image/png", "image/jpeg"):
+                raise RuntimeError(f"Image URL returned HTTP {response.status} with Content-Type {mime!r}")
+            if not (magic.startswith(b"\\x89PNG\\r\\n\\x1a\\n") or magic.startswith(b"\\xff\\xd8\\xff")):
+                raise RuntimeError("Image URL does not return a valid PNG or JPEG file")
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"Image URL returned HTTP {e.code}") from None
+
 def ensure_manifest(asset, published_at):
     doc = load(MANIFEST, {"schema_version": 1, "assets": []})
     path = asset.get("path")
@@ -107,6 +122,13 @@ def main():
             print(f"Skipping invalid post {ident}")
             continue
         status = log.setdefault("posts", {}).setdefault(ident, {})
+        if not DRY_RUN:
+            try:
+                check_image(img)
+            except Exception as exc:
+                failures.append(f"{ident}: {exc}")
+                print(f"ERROR: {ident} image preflight failed: {exc}")
+                continue
         for target in targets:
             if status.get(target, {}).get("status") == "published":
                 continue
