@@ -99,7 +99,7 @@ def main():
     if not args.title.strip():
         raise RuntimeError("Video title required")
     file = safe_relative_file(args.file)
-    print(f"Uploading {file.relative_to(ROOT)} as {args.privacy} to {actual_name}")
+    print(f"Uploading {file.name} as {args.privacy} to {actual_name}")
     body = {
         "snippet": {
             "title": args.title[:100],
