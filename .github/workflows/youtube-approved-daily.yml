@@ -1,5 +1,7 @@
-name: YouTube publishing paused for creative redesign
+name: Daily approved TheTechnoz YouTube Short
 on:
+  schedule:
+    - cron: "0 13 * * *" # 18:00 Pakistan Standard Time
   push:
     branches: [main]
     paths:
