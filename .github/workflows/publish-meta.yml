@@ -1,5 +1,9 @@
 name: Publish scheduled Facebook and Instagram posts
 on:
+  push:
+    branches: [main]
+    paths:
+      - "posts-queue.json"
   schedule:
     # 11:00 and 19:00 Pakistan Standard Time (UTC+5).
     - cron: "0 6,14 * * *"
