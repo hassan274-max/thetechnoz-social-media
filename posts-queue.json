@@ -60,6 +60,32 @@
         "facebook",
         "instagram"
       ]
+    },
+    {
+      "id": "2026-11-28-image",
+      "kind": "image",
+      "scheduled_at": "2026-11-28T06:00:00Z",
+      "image_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/daily-2026-11-28.png",
+      "video_url": null,
+      "path": "assets/daily-2026-11-28.png",
+      "caption": "AUTOMATE THE BORING WORK\n\nAI automation works best when a process is clearly defined. Start with one repetitive task, measure the time saved, and expand only when results are reliable.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ]
+    },
+    {
+      "id": "2026-11-28-reel",
+      "kind": "reel",
+      "scheduled_at": "2026-11-28T14:00:00Z",
+      "image_url": null,
+      "video_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/reel-2026-11-28.mp4",
+      "path": "assets/reel-2026-11-28.mp4",
+      "caption": "CLICKS ARE NOT SALES\n\nHigh traffic with low conversion? Check search-term relevance, pricing, reviews, delivery promise and listing quality before increasing your PPC budget.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ]
     }
   ]
 }
