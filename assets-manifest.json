@@ -8,6 +8,12 @@
       "published_at": "2026-11-26T00:00:00Z",
       "delete_after": "2026-12-01T00:00:00Z",
       "notes": "Facebook introduction published 2026-11-26. Publication timestamp is date-only/conservative; deletion deliberately deferred until December 1."
+    },
+    {
+      "path": "assets/ai-automation-20261126.png",
+      "status": "published",
+      "published_at": "2026-11-26T16:26:02.251538Z",
+      "delete_after": "2026-11-29T16:26:02.251538Z"
     }
   ]
 }
