@@ -1,0 +1,73 @@
+name: Direct LinkedIn — personal and company
+on:
+  schedule:
+    # 10:00 and 18:00 Pakistan time, one original AI and Amazon PPC post
+    # per slot, cross-posted to both authorized destinations.
+    - cron: "0 5 * * *"
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: "Dry run only. No manual upload from dispatch."
+        type: choice
+        required: true
+        default: ai
+        options: [ai, amazon]
+permissions:
+  contents: write
+concurrency:
+  group: thetechnoz-direct-linkedin-posting
+  cancel-in-progress: false
+jobs:
+  direct-post:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      LINKEDIN_DIRECT_ENABLED: ${{ vars.LINKEDIN_DIRECT_ENABLED }}
+      LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+      LINKEDIN_PERSON_URN: ${{ secrets.LINKEDIN_PERSON_URN }}
+      LINKEDIN_ORGANIZATION_URN: ${{ secrets.LINKEDIN_ORGANIZATION_URN }}
+      EVENT_NAME: ${{ github.event_name }}
+      EVENT_SCHEDULE: ${{ github.event.schedule }}
+      INPUT_SLOT: ${{ inputs.slot }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate direct post scripts and unique content queue
+        run: |
+          python -m py_compile scripts/linkedin_direct_publish.py
+          python - <<'PY'
+          import json,datetime
+          from pathlib import Path
+          q=json.loads(Path("linkedin-direct-queue.json").read_text())
+          log=json.loads(Path("linkedin-direct-log.json").read_text())
+          seen_ids=set();seen_text=set()
+          for p in q["posts"]:
+              assert p["id"] not in seen_ids,"Duplicate LinkedIn queue ID"
+              assert p["text"].strip().casefold() not in seen_text,"Duplicate content"
+              assert len(p["text"])<=3000 and p["status"]=="approved"
+              assert datetime.datetime.fromisoformat(p["scheduled_at"]).tzinfo
+              seen_ids.add(p["id"]);seen_text.add(p["text"].strip().casefold())
+          assert isinstance(log["posts"],dict)
+          print(f"{len(q['posts'])} original post drafts passed uniqueness checks")
+          PY
+      - name: Publish strictly due slot to both destinations when authorized
+        env:
+          APPROVED_SLOT: ${{ github.event_name == 'schedule' && github.event.schedule == '0 5 * * *' && 'ai' || github.event_name == 'schedule' && github.event.schedule == '0 13 * * *' && 'amazon' || inputs.slot }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" != "schedule" ]; then
+            python scripts/linkedin_direct_publish.py --slot "$APPROVED_SLOT" --dry-run
+            exit 0
+          fi
+          if [ "$LINKEDIN_DIRECT_ENABLED" != "true" ]; then
+            echo "LinkedIn OAuth/config not confirmed. Posting disabled. No upload."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python scripts/linkedin_direct_publish.py --slot "$APPROVED_SLOT"
