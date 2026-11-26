@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 from original_audio import build as build_original_audio
 from meta_uniqueness import check_queue, validate_unique, normalized, headline
+from meta_discovery import decorate
 from datetime import datetime, timedelta, date, time as daytime, timezone
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -133,6 +134,7 @@ def main():
         topic,hook,subtitle,body=t
         caption=(f"{hook}\n\n{body}\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n"
                  "#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce")
+        caption=decorate(caption,topic)
         entry={"id":ident,"kind":kind,"scheduled_at":when.isoformat().replace("+00:00","Z"),
                "image_url":RAW+str(path) if kind=="image" else None,
                "video_url":RAW+str(path) if kind=="reel" else None,
