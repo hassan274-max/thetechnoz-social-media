@@ -1,0 +1,11 @@
+# NEVER commit personal Google OAuth credentials or access tokens
+client_secret.json
+client_secrets.json
+client_secret*.json
+youtube_token.json
+*youtube*token*.json
+*.credentials.json
+.env
+.env.*
+__pycache__/
+*.pyc
