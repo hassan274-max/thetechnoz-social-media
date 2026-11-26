@@ -71,7 +71,7 @@ jobs:
           fi
       - name: Publish strictly due slot to personal profile when authorized
         env:
-          APPROVED_SLOT: ${{ github.event_name == 'schedule' && github.event.schedule == '0 5 * * *' && 'ai' || github.event_name == 'schedule' && github.event.schedule == '0 13 * * *' && 'amazon' || inputs.slot }}
+          APPROVED_SLOT: ${{ github.event_name == 'schedule' && github.event.schedule == '0 5 * * *' && 'ai' || github.event_name == 'schedule' && github.event.schedule == '0 13 * * *' && 'amazon' || inputs.slot || 'ai' }}
         run: |
           set -euo pipefail
           if [ "$EVENT_NAME" != "schedule" ]; then
