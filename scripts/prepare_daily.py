@@ -138,7 +138,7 @@ def main():
         entry={"id":ident,"kind":kind,"scheduled_at":when.isoformat().replace("+00:00","Z"),
                "image_url":RAW+str(path) if kind=="image" else None,
                "video_url":RAW+str(path) if kind=="reel" else None,
-               "path":str(path),"caption":caption,
+               "path":str(path),"caption":caption,"topic_category":topic,
                "platforms":["facebook","instagram"]}
         validate_unique(entry,history+[record for record,_ in pending])
         pending.append((entry,t))
