@@ -11,6 +11,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone
 from pathlib import Path
+from meta_uniqueness import check_queue
 
 ROOT = Path(__file__).resolve().parents[1]
 QUEUE = ROOT / "posts-queue.json"
@@ -91,6 +92,8 @@ def ensure_manifest(asset, published_at):
 
 def main():
     queue = load(QUEUE, {"posts": []}).get("posts", [])
+    # Fail closed: no repeated topic, caption or asset can enter publishing.
+    check_queue(queue)
     log = load(LOG, {"posts": {}})
     now = utcnow()
     if not ENABLED:
