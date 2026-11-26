@@ -28,3 +28,11 @@ Narration is placed into five animation scenes. Original music is mixed quieter 
 Free integration committed; complete narrated MP4 still requires a successful audio preview and a supplied V3 MP4. Publishing remains paused pending creative approval. Check the WAV previews for naturalness, pronunciation (RAG), pacing and commercial suitability before any upload.
 
 Sources: https://huggingface.co/hexgrad/Kokoro-82M and https://github.com/thewh1teagle/kokoro-onnx
+
+## One-step GitHub narrated MP4 workflow
+
+Upload the previously generated V3 MP4 to the repository using **Add file → Upload files** in the `assets` folder and name it **rag-v3.mp4** (repository path `assets/rag-v3.mp4`). The source is the 27-second V3 motion prototype, NOT the earlier static-slide video. If needed, download it from its ChatGPT attachment before uploading.
+
+Then open `https://github.com/hassan274-max/thetechnoz-social-media/actions/workflows/rag-v3-kokoro.yml`, click **Run workflow**, and download the `rag-v3-kokoro-narrated-preview` artifact. This builds the fully mixed V3 MP4 with the free neural voice. It does not publish to YouTube.
+
+The main YouTube renderer `scripts/build_youtube_video.py` now uses Kokoro instead of eSpeak too. The old automatic publishing schedule remains paused because its current static-slide visual template has not met the requested professional standard.
