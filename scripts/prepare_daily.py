@@ -135,14 +135,14 @@ def main():
         used.add(normalized(t[1]))
         when=datetime.combine(target,daytime(hour),PKT).astimezone(timezone.utc)
         topic,hook,subtitle,body=t
-        caption=(f"{hook}\\n\\n{body}\\n\\nTheTechnoz Solutions — Where AI Meets Business.\\n\\n"
+        caption=(f"{hook}\n\n{body}\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n"
                  "#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce")
         entry={"id":ident,"kind":kind,"scheduled_at":when.isoformat().replace("+00:00","Z"),
                "image_url":RAW+str(path) if kind=="image" else None,
                "video_url":RAW+str(path) if kind=="reel" else None,
                "path":str(path),"caption":caption,
                "platforms":["facebook","instagram"]}
-        validate_unique(entry,history+pending)
+        validate_unique(entry,history+[record for record,_ in pending])
         pending.append((entry,t))
     if not pending:
         print("All requested slots already queued. No new items or duplicates.")
@@ -159,7 +159,7 @@ def main():
             frame.unlink()
         queue["posts"].append(entry)
     check_queue(queue["posts"])
-    QUEUE.write_text(json.dumps(queue,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    QUEUE.write_text(json.dumps(queue,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     print(f"Prepared {len(pending)} strictly unique posts for {target}; no topic reuse.")
 
 if __name__=="__main__":
