@@ -28,6 +28,16 @@ def center(d,y,msg,size=30,color=FG,bold=True):
     f=font(size,bold);box=d.textbbox((0,0),msg,font=f)
     x=(W-(box[2]-box[0]))/2
     d.text((int(x),int(y)),msg,font=f,fill=color)
+def in_card(d,rect,y,msg,size=22,color=FG,bold=True):
+    """Center text in its own box, not across the full video width."""
+    x0,_,x1,_=rect
+    f=font(size,bold)
+    box=d.textbbox((0,0),msg,font=f)
+    width=box[2]-box[0]
+    if width > (x1-x0-24):
+        raise RuntimeError(f"Diagram label does not fit its node: {msg!r}")
+    d.text((int((x0+x1-width)/2),int(y)),msg,font=f,fill=color)
+
 def wrap(d,s,maxwidth,f):
     arr=[];line=""
     for word in s.split():
@@ -75,28 +85,57 @@ def visual(d,kind,t):
             arrow(d,(107,825),(614,825),t/2.3)
             center(d,950,"CHECK CAPACITY OVER TIME",20,MUTED)
     elif kind in ("retrieval","evidence","generation","vectors","lexical","hybrid","memory","storage","query"):
-        card(d,(75,573,295,717),border=MINT)
-        card(d,(425,573,645,717),border=CYAN)
-        center(d,625,"SOURCE" if kind!="memory" else "CONTEXT",24,MINT)
-        center(d,663,"EVIDENCE" if kind!="storage" else "STORE",20)
-        center(d,625,"MODEL" if kind!="lexical" else "MATCH",24,CYAN)
-        center(d,663,"ANSWER" if kind!="vectors" else "SEARCH",20)
-        arrow(d,(298,645),(421,645),t/1.5)
-        for j in range(4):dot(d,(298,645),(420,645),(t-1.0-j*.28)/1.2)
+        # Never use full-canvas centering for node labels: it causes text collisions.
+        left=(69,556,297,744)
+        right=(421,556,649,744)
+        card(d,left,border=MINT)
+        card(d,right,border=CYAN)
+        labels={
+            "retrieval":("DOCUMENTS","RETRIEVER"),
+            "evidence":("PASSAGES","EVIDENCE"),
+            "generation":("CONTEXT","LANGUAGE MODEL"),
+            "vectors":("EMBEDDINGS","VECTOR INDEX"),
+            "lexical":("KEYWORDS","EXACT MATCH"),
+            "hybrid":("KEYWORD HIT","SEMANTIC HIT"),
+            "memory":("CONTEXT","SAVED STATE"),
+            "storage":("FACTS","DATA STORE"),
+            "query":("SEARCH TERM","MATCHED TEXT"),
+        }
+        a,b=labels[kind]
+        size_a=17 if len(a)>11 else 19
+        size_b=16 if len(b)>11 else 19
+        in_card(d,left,583,a,size_a,MINT)
+        in_card(d,right,583,b,size_b,CYAN)
+        for node in (left,right):
+            x0,y0,x1,y1=node
+            for j in range(3):
+                y=638+j*26
+                width=(x1-x0-58)-j*16
+                d.rounded_rectangle((x0+29,y,x0+29+width,y+9),
+                                     radius=4,fill=(73,121,143))
+        # Directional data packets travel in the clear gap between boxes.
+        arrow(d,(302,647),(416,647),t/1.6)
+        for j in range(3):
+            dot(d,(306,647),(414,647),(t-1.3-j*.29)/1.1)
         if kind in ("evidence","hybrid","lexical"):
-            card(d,(184,813,540,900),border=MINT,fill=(17,62,61))
-            center(d,844,"VERIFY SUPPORT",21,MINT)
+            node=(169,824,551,904)
+            card(d,node,border=MINT,fill=(17,62,61))
+            in_card(d,node,850,"VERIFY SOURCE SUPPORT",19,MINT)
     elif kind in ("agent","limits","stop","workflow","eval"):
-        xs=(105,305,505)
+        xs=(93,309,525)
+        labels=("INPUT","CHECK","STOP" if kind in ("limits","stop") else "OUTPUT")
         for i,x in enumerate(xs):
-            card(d,(x,624,x+107,732),border=MINT if i==2 else CYAN,r=18)
-            center(d,661,("INPUT","CHECK","STOP" if kind in ("limits","stop") else "OUTPUT")[i],16)
+            node=(x,624,x+102,746)
+            card(d,node,border=MINT if i==2 else CYAN,r=17)
+            in_card(d,node,662,labels[i],15)
+            d.ellipse((x+37,703,x+65,731),outline=MINT if i==2 else CYAN,width=3)
         for i in range(2):
-            arrow(d,(xs[i]+110,675),(xs[i+1]-5,675),(t-i*.45)/1.25,
+            arrow(d,(xs[i]+108,685),(xs[i+1]-7,685),(t-i*.45)/1.25,
                   MINT if i else CYAN)
         if kind in ("limits","stop"):
-            center(d,862,"TIME • COST • VALIDATION",22,MINT)
-        else:center(d,862,"TEST EACH STEP",22,MINT)
+            center(d,864,"TIME • COST • VALIDATION",22,MINT)
+        else:
+            center(d,864,"TEST EACH STEP",22,MINT)
     elif kind in ("listing","ranking","target","diagnose"):
         card(d,(220,525,500,828),border=CYAN)
         d.rectangle((252,557,468,682),fill=(46,112,146))
@@ -140,8 +179,8 @@ def frame(spec,stage,progress,t,durations):
         label,spoken,kind=spec["scenes"][stage-1]
         center(d,246,f"STEP {stage}: {label}",29,CYAN)
         visual(d,kind,t)
-        card(d,(39,1017,681,1154),border=(46,111,141),fill=(15,41,63))
-        blocks(d,spoken,1051,27,FG,10,600)
+        card(d,(39,927,681,1058),border=(46,111,141),fill=(15,41,63))
+        blocks(d,spoken,958,27,FG,10,600)
     else:
         center(d,249,"THE TAKEAWAY",27,CYAN)
         blocks(d,spec["spoken_takeaway"],356,32,MINT,14)
@@ -151,7 +190,7 @@ def frame(spec,stage,progress,t,durations):
         for i in range(4):
             x=150+i*125
             d.ellipse((x-10,968-6*math.sin(t*3+i),x+10,988-6*math.sin(t*3+i)),fill=MINT)
-    d.text((46,1223),"ORIGINAL ANIMATED EXPLAINER  •  TheTechnoz",font=font(16,False),fill=MUTED)
+    d.text((46,1124),"TheTechnoz Solutions  •  Where AI Meets Business",font=font(16,False),fill=MUTED)
     return im
 
 def generate_voice(kokoro,spoken):
