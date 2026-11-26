@@ -168,7 +168,16 @@ def main():
         raise SystemExit(f"No unused editorial script for {day} ({args.kind}); stopping safely without upload.")
     out=Path(args.output).resolve()
     out.parent.mkdir(parents=True,exist_ok=True)
-    seconds=render(doc,out)
+    if args.kind=="short":
+        from render_educational_short import render as render_animated
+        from short_episode_specs import episode
+        spec=episode(day)
+        if spec is None:
+            raise SystemExit("No reviewed, topic-specific animated Short for this date")
+        seconds=render_animated(spec,out)
+    else:
+        # Block old slide-based long videos until dedicated animated tutorial format exists.
+        raise SystemExit("Tutorial renderer is not approved. No preview/upload will be generated.")
     print(f"RENDER SUCCESS: {out} | {seconds:.1f} seconds | {doc['title']}")
     info={
       "id":doc["id"],"kind":doc["kind"],"category":doc["category"],
