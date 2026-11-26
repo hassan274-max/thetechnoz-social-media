@@ -125,9 +125,9 @@ def render(doc,out):
          "-f","concat","-safe","0","-i",str(playlist),
          "-c","copy","-movflags","+faststart",str(out)])
     seconds=duration(out)
-    if doc["kind"]=="short" and not 20 <= seconds <= 38:
-        raise RuntimeError(f"Short is {seconds:.1f}s; expected roughly 20–30 seconds (maximum 38s)")
-    if doc["kind"]=="tutorial" and not 270 <= seconds <= 600:
+    if doc["kind"]=="short" and not 20 <= seconds <= 35:
+        raise RuntimeError(f"Short is {seconds:.1f}s; expected roughly 20–30 seconds (maximum 35s)")
+    if doc["kind"]=="tutorial" and not 300 <= seconds <= 480:
         raise RuntimeError(f"Tutorial is {seconds:.1f}s; target roughly 5–8 minutes; revise narration")
     return seconds
 
