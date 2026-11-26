@@ -11,6 +11,7 @@ import sys
 from datetime import date,datetime,timedelta,timezone,time as daytime
 from pathlib import Path
 from meta_uniqueness import validate_unique, check_queue
+from meta_discovery import decorate
 from short_episode_specs import episode
 from render_educational_short import render
 from validate_youtube_video import validate
@@ -55,6 +56,7 @@ def prepare(day):
                  + spec["spoken_takeaway"]+"\n\n"+spec["closing_question"]
                  +"\n\nTheTechnoz Solutions — Where AI Meets Business."
                  +"\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPPC #AmazonPrivateLabel #AI")
+        caption=decorate(caption,spec["category"])
         when=datetime.combine(day,daytime(19,0),PKT).astimezone(timezone.utc)
         item={"id":ident,"kind":"reel","scheduled_at":when.isoformat().replace("+00:00","Z"),
               "video_url":RAW+str(path),"image_url":None,"path":str(path),
