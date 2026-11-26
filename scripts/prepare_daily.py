@@ -6,6 +6,8 @@ Curated evergreen copy; this is NOT live LLM content generation.
 import argparse
 import json
 import subprocess
+import tempfile
+from original_audio import build as build_original_audio
 from datetime import datetime, timedelta, date, time as daytime, timezone
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -75,24 +77,27 @@ def create_poster(path, topic, hook, subtitle, square=False):
     im.save(path,optimize=True)
 
 def make_video(poster, output):
+    """Combine animated branded image with an original 4.8-second sonic logo."""
     output.parent.mkdir(parents=True,exist_ok=True)
-    # 4.8 seconds at 30fps. Original soft synthesizer sound, no licensed music.
-    command=[
-        "ffmpeg","-hide_banner","-loglevel","error","-y","-loop","1","-framerate","30","-i",str(poster),
-        "-f","lavfi","-i","sine=frequency=220:sample_rate=48000:duration=4.8",
-        "-f","lavfi","-i","sine=frequency=330:sample_rate=48000:duration=4.8",
-        "-filter_complex",
-        "[0:v]zoompan=z='min(zoom+0.00024,1.045)':d=144:s=720x1280:fps=30,format=yuv420p[v];"
-        "[1:a][2:a]amix=inputs=2:duration=first:normalize=1,"
-        "volume=0.20,afade=t=in:st=0:d=0.45,afade=t=out:st=4.0:d=0.8[a]",
-        "-map","[v]","-map","[a]","-frames:v","144",
-        "-c:v","libx264","-preset","veryfast","-crf","24","-r","30",
-        "-c:a","aac","-b:a","128k","-ar","48000","-t","4.8",
-        "-movflags","+faststart",str(output)]
-    subprocess.run(command,check=True)
-    subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",
-                    "-of","default=noprint_wrappers=1:nokey=1",str(output)],
-                    check=True,stdout=subprocess.DEVNULL)
+    with tempfile.TemporaryDirectory(prefix="thetechnoz-audio-") as folder:
+        wav_path=Path(folder)/"original-brand-sound.wav"
+        build_original_audio(wav_path)
+        command=[
+            "ffmpeg","-hide_banner","-loglevel","error","-y",
+            "-loop","1","-framerate","30","-i",str(poster),
+            "-i",str(wav_path),
+            "-filter_complex",
+            "[0:v]zoompan=z='min(zoom+0.00024,1.045)':d=144:s=720x1280:fps=30,"
+            "format=yuv420p[v]",
+            "-map","[v]","-map","1:a","-frames:v","144",
+            "-c:v","libx264","-preset","veryfast","-crf","24","-r","30",
+            "-c:a","aac","-b:a","128k","-ar","48000","-ac","2",
+            "-t","4.8","-movflags","+faststart",str(output)]
+        subprocess.run(command,check=True)
+    subprocess.run(["ffprobe","-v","error","-show_entries",
+                    "stream=codec_type,codec_name:format=duration",
+                    "-of","json",str(output)],check=True,stdout=subprocess.DEVNULL)
+
 
 def main():
     ap=argparse.ArgumentParser()
