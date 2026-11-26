@@ -14,6 +14,12 @@
       "status": "published",
       "published_at": "2026-11-26T16:26:02.251538Z",
       "delete_after": "2026-11-29T16:26:02.251538Z"
+    },
+    {
+      "path": "assets/reel-2026-11-26.mp4",
+      "status": "published",
+      "published_at": "2026-11-26T16:58:14.312725Z",
+      "delete_after": "2026-11-29T16:58:14.312725Z"
     }
   ]
 }
