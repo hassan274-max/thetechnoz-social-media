@@ -183,7 +183,9 @@ def main():
       "id":doc["id"],"kind":doc["kind"],"category":doc["category"],
       "title":doc["title"] + (" #Shorts" if args.kind=="short" else ""),
       "description":(
-        (doc.get("narration") or "Detailed educational tutorial covering "+doc["title"])
+        ((spec["question"]+"\n"+spec["spoken_takeaway"]+"\n"+spec["closing_question"])
+          if args.kind=="short" else
+         "Detailed educational tutorial covering "+doc["title"])
         +"\n\nTheTechnoz Solutions | Where AI Meets Business.\n"
         +"#TheTechnozSolutions #AI #AmazonPrivateLabel"
         +("#Shorts" if args.kind=="short" else "")
