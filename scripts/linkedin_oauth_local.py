@@ -32,7 +32,30 @@ def request_json(url, data=None, headers=None):
         with urllib.request.urlopen(req,timeout=25) as response:
             return json.load(response)
     except urllib.error.HTTPError as exc:
-        raise RuntimeError(f"LinkedIn request rejected with HTTP {exc.code}. Check the app's products, redirect URL and OAuth scopes.") from None
+        # Show only safe OAuth error classifications, never raw response,
+        # access/authorization codes, client secrets or entire URLs.
+        safe_codes={"invalid_client","invalid_client_id","invalid_request",
+                    "invalid_grant","invalid_redirect_uri","unauthorized_client",
+                    "invalid_scope","access_denied"}
+        error_type="unknown"
+        error_hint=""
+        try:
+            body=json.loads(exc.read(4096).decode("utf-8",errors="replace"))
+            candidate=str(body.get("error","")).lower()
+            if candidate in safe_codes:
+                error_type=candidate
+            detail=str(body.get("error_description","")).lower()
+            if "authorization code not found" in detail or "code not found" in detail:
+                error_hint="Authorization code was rejected; verify the app secret and generate a fresh code."
+            elif "client authentication failed" in detail or "client secret" in detail:
+                error_hint="LinkedIn rejected client authentication. Verify the exact Client ID and Primary Client Secret."
+            elif "expired" in detail or "redirect uri" in detail or "redirect_uri" in detail:
+                error_hint="Verify that the exact redirect URI matches, then generate a fresh code."
+            elif "scope" in detail:
+                error_hint="Verify the requested OAuth scopes are provisioned on this application."
+        except (ValueError,AttributeError,TypeError):
+            pass
+        raise RuntimeError(f"LinkedIn OAuth HTTP {exc.code}; error={error_type}. {error_hint or 'Check app credentials, redirect URI and current authorization.'}") from None
 
 def save_secret(name,value):
     p=subprocess.run(["gh","secret","set",name,"--repo",REPO],
