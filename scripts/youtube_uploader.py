@@ -126,9 +126,22 @@ def main():
     video_id = response.get("id")
     if not video_id:
         raise RuntimeError("Upload did not return a video ID; check YouTube Studio")
+    # Confirm YouTube reports the video under the authorized channel and
+    # the requested visibility. Upload acknowledgement alone isn't enough.
+    verified = yt.videos().list(part="snippet,status", id=video_id).execute()
+    items = verified.get("items", [])
+    if not items:
+        raise RuntimeError("Upload acknowledged but YouTube video was not yet retrievable; inspect Studio before retry")
+    uploaded = items[0]
+    if uploaded.get("snippet", {}).get("channelId") != actual_id:
+        raise RuntimeError("Video returned from unexpected channel; inspect YouTube Studio")
+    confirmed_privacy = uploaded.get("status", {}).get("privacyStatus")
+    if confirmed_privacy != args.privacy:
+        raise RuntimeError(f"Upload finished but privacy is {confirmed_privacy}, expected {args.privacy}")
     print("UPLOAD SUCCESS:", "https://www.youtube.com/watch?v=" + video_id)
-    print("PRIVACY:", args.privacy)
-    print("Video uploaded; verify playback and status in YouTube Studio before setting public.")
+    print("PRIVACY VERIFIED:", confirmed_privacy)
+    print("CHANNEL VERIFIED:", actual_id)
+    print("Inspect video playback and YouTube checks in YouTube Studio.")
 
 
 if __name__ == "__main__":
