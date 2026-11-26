@@ -64,7 +64,7 @@ def visual(d,kind,t):
             if kind=="conversion":heights=(240,100,185,145)
             for i,h in enumerate(heights):
                 x=135+i*135
-                d.rounded_rectangle((x,890-h*p,x+67,889),radius=12,
+                d.rounded_rectangle((x,890-max(3,h*p),x+67,889),radius=2,
                    fill=CYAN if i%2==0 else MINT)
             center(d,950,"ILLUSTRATIVE METRICS",20,MUTED)
         else:
@@ -119,7 +119,7 @@ def frame(spec,stage,progress,t,durations):
     d.text((44,84),"WHERE AI MEETS BUSINESS",font=font(17,False),fill=CYAN)
     category=spec["category"].upper()
     d.rounded_rectangle((490,73,673,116),radius=14,fill=(25,70,92))
-    center(d,80,category if len(category)<12 else "TECH",16,MINT)
+    d.text((512,84),category if len(category)<12 else "TECH",font=font(16),fill=MINT)
     for i in range(5):
         a=45+i*128;b=a+111
         d.rounded_rectangle((a,166,b,174),radius=4,fill=(26,66,85))
