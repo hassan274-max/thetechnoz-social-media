@@ -22,8 +22,8 @@ jobs:
           python -m pip install kokoro-onnx soundfile
       - name: Download free Kokoro model and voice pack
         run: |
-          curl --fail --location --retry 3 --output kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx"
-          curl --fail --location --retry 3 --output voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+          curl --fail --location --retry 3 --output kokoro-v1.0.onnx "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx"
+          curl --fail --location --retry 3 --output voices-v1.0.bin "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin"
           test "$(stat -c%s kokoro-v1.0.onnx)" -gt 10000000
           test "$(stat -c%s voices-v1.0.bin)" -gt 1000000
       - name: Synthesize five RAG narration scenes
