@@ -1,0 +1,42 @@
+name: Prepare daily image and Reel
+on:
+  schedule:
+    # 09:00 PKT (04:00 UTC); prepare today's 11AM image and 7PM Reel
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      day_offset:
+        description: "0 for today, 1 for tomorrow (recommended for testing)"
+        required: true
+        default: "1"
+        type: choice
+        options: ["1", "0"]
+permissions:
+  contents: write
+concurrency:
+  group: thetechnoz-content-preparation
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install media tools
+        run: |
+          python3 -m pip install --user Pillow
+          ffmpeg -version | head -n 1
+      - name: Create image, five-second MP4, and queue records
+        env:
+          DAY_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.day_offset || '0' }}
+        run: python3 scripts/prepare_daily.py --day-offset "$DAY_OFFSET"
+      - name: Commit prepared assets and queue
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/ posts-queue.json
+          if [[ -n "$(git diff --cached --name-only)" ]]; then
+            git commit -m "chore: prepare daily AI and Amazon PL posts"
+            git push
+          else
+            echo "No new content."
+          fi
