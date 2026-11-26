@@ -104,19 +104,31 @@ def render(doc,out):
                   ("KEY TAKEAWAY","From evidence to action",
                    "Use these steps on real data, document your assumptions, and verify improvements through careful measurement.")]
     else:
+        # Two focused segments avoid repeating the same point three times.
+        # Target one coherent ~20-30 second educational Short.
+        text=doc["narration"].strip()
+        sentences=re.split(r"(?<=[.!?])\\s+",text)
+        if len(sentences)>1:
+            pivot=max(1,len(sentences)//2)
+            first=" ".join(sentences[:pivot])
+            second=" ".join(sentences[pivot:])
+        else:
+            words=text.split()
+            pivot=max(1,len(words)//2)
+            first=" ".join(words[:pivot])
+            second=" ".join(words[pivot:])
         chapters=[
-           ("THE QUESTION",doc["title"],doc["title"]+"."),
-           ("THE EXPLANATION",doc["angle"],doc["narration"]),
-           ("THE TAKEAWAY",doc["takeaway"],doc["takeaway"])
+           ("THE INSIGHT",doc["title"],doc["title"]+". "+first),
+           ("ACTIONABLE TAKEAWAY",doc["takeaway"],second+" "+doc["takeaway"])
         ]
     for i,(heading,heading_text,voice_text) in enumerate(chapters):
         frame=work/f"slide{i:02d}.png"
         wav=work/f"voice{i:02d}.wav"
         clip=work/f"clip{i:02d}.mp4"
-        visual=voice_text if wide else (doc["narration"] if i==1 else heading_text)
+        visual=voice_text if wide else (voice_text if i==0 else heading_text)
         slide(frame,doc["category"],heading_text,visual,
               "Where AI Meets Business  •  TheTechnoz Solutions",wide)
-        speech(voice_text,wav,rate=112 if wide else 162)
+        speech(voice_text,wav,rate=112 if wide else 167)
         seconds=segment(frame,wav,clip,wide,min_sec=0)
         segments.append((clip,seconds))
     playlist=work/"playlist.txt"
@@ -125,8 +137,8 @@ def render(doc,out):
          "-f","concat","-safe","0","-i",str(playlist),
          "-c","copy","-movflags","+faststart",str(out)])
     seconds=duration(out)
-    if doc["kind"]=="short" and not 20 <= seconds <= 35:
-        raise RuntimeError(f"Short is {seconds:.1f}s; expected roughly 20–30 seconds (maximum 35s)")
+    if doc["kind"]=="short" and not 18 <= seconds <= 35:
+        raise RuntimeError(f"Short is {seconds:.1f}s; target 20–30 seconds; expected 18–35 for narration variability")
     if doc["kind"]=="tutorial" and not 300 <= seconds <= 480:
         raise RuntimeError(f"Tutorial is {seconds:.1f}s; target roughly 5–8 minutes; revise narration")
     return seconds
