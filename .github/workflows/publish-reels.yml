@@ -1,0 +1,44 @@
+name: Publish 5-second Reels to Facebook and Instagram
+on:
+  schedule:
+    # 19:05 Pakistan time, allowing five minutes after target slot.
+    - cron: "5 14 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Inspect due Reels without posting"
+        type: boolean
+        required: true
+        default: true
+  push:
+    branches: [main]
+    paths:
+      - "posts-queue.json"
+permissions:
+  contents: write
+concurrency:
+  group: thetechnoz-meta-publishing
+  cancel-in-progress: false
+jobs:
+  publish-reels:
+    runs-on: ubuntu-latest
+    env:
+      META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+      PUBLISHING_ENABLED: ${{ vars.PUBLISHING_ENABLED }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish queued Reels
+        run: python3 scripts/publish_reels.py
+      - name: Save successful IDs and cleanup eligibility
+        if: always()
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add publishing-log.json assets-manifest.json
+            if [[ -n "$(git diff --cached --name-only)" ]]; then
+              git commit -m "chore: record Reel publishing results"
+              git push
+            fi
+          fi
