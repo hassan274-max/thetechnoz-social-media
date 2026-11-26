@@ -11,6 +11,7 @@ on:
       - ".github/workflows/youtube-scheduled.yml"
       - "scripts/build_youtube_video.py"
       - "scripts/youtube_editorial.py"
+      - "scripts/validate_youtube_video.py"
   workflow_dispatch:
     inputs:
       mode:
@@ -101,8 +102,9 @@ jobs:
             --date "${{ steps.plan.outputs.date }}" \
             --kind "${{ steps.plan.outputs.kind }}" \
             --output "/tmp/thetechnoz-youtube-video.mp4"
-          ffprobe -v error -show_entries stream=codec_type,codec_name:format=duration \
-            -of json /tmp/thetechnoz-youtube-video.mp4
+          python3 scripts/validate_youtube_video.py \
+            --file /tmp/thetechnoz-youtube-video.mp4 \
+            --kind "${{ steps.plan.outputs.kind }}"
       - name: Publish validation preview as workflow artifact
         if: steps.plan.outputs.ready == 'true' && steps.plan.outputs.mode == 'preview'
         uses: actions/upload-artifact@v4
