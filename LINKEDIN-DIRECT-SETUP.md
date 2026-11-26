@@ -28,3 +28,27 @@ Once an item has a ledger entry for the personal destination, it will not be sen
 
 ## Official LinkedIn guidance
 https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin
+
+## One-time local authorization (recommended)
+
+The LinkedIn app has **Share on LinkedIn** enabled. For reliable confirmation of the authenticated member ID, also enable **Sign In with LinkedIn using OpenID Connect**; this is for member identity only, **not** the company-page Community Management API.
+
+1. In LinkedIn Developer App → **Auth**, add this exact authorized redirect URL:
+   `http://localhost:8765/linkedin-callback`
+2. On the same app, ensure that `w_member_social`, `openid` and `profile` are shown among the available OAuth scopes.
+3. On **your own computer**, install Python 3 and GitHub CLI (https://cli.github.com/), then sign in with `gh auth login`.
+4. Clone the repository if not already cloned:
+   `git clone https://github.com/hassan274-max/thetechnoz-social-media.git`
+5. From the cloned folder run:
+   `python scripts/linkedin_oauth_local.py`
+6. Enter the Client ID and Client Secret in your **local terminal only**, consent to your LinkedIn account in the browser, then let the script save the OAuth access token and identified person URN as encrypted GitHub Actions secrets. It does **not** commit or print the credentials.
+7. Before enabling publishing, verify the safe workflow at
+   https://github.com/hassan274-max/thetechnoz-social-media/actions/workflows/linkedin-direct-daily.yml.
+   It verifies the token and LinkedIn member identity on push/manual runs **without posting**.
+8. Once both the identity check and publishing authorization are confirmed, set repository Actions variable `LINKEDIN_DIRECT_ENABLED` to `true` under Settings → Secrets and variables → Actions → Variables. **Don't do this yet** until the connection test is successful.
+
+Only 4 unique original posts have been drafted so far. The remaining 26 days must be prepared without repetition. OAuth tokens may expire and require reauthorization. The local setup script only configures authorization, **it never publishes a LinkedIn post**.
+
+References:
+- https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow
+- https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/share-on-linkedin
