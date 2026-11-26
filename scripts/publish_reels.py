@@ -6,6 +6,7 @@ import json, os, sys, time, urllib.request, urllib.error
 from datetime import datetime, timezone
 from publish_meta import ROOT, QUEUE, LOG, TOKEN, ENABLED, DRY_RUN, IG_ID, graph, save, load, ensure_manifest, utcnow
 from meta_uniqueness import check_queue
+from meta_discovery import instagram_caption
 
 def check_video(url):
     if not url.startswith("https://"):
@@ -105,7 +106,7 @@ def main():
                 if platform=="facebook":
                     media_id=facebook_reel(url,caption)
                 else:
-                    media_id=instagram_reel(url,caption)
+                    media_id=instagram_reel(url,instagram_caption(caption,post.get("topic_category") or caption.splitlines()[0]))
                 status[platform]={"status":"published","id":media_id,
                                   "published_at":utcnow().isoformat()}
                 save(LOG,ledger)
