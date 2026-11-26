@@ -29,10 +29,21 @@ Free integration committed; complete narrated MP4 still requires a successful au
 
 Sources: https://huggingface.co/hexgrad/Kokoro-82M and https://github.com/thewh1teagle/kokoro-onnx
 
-## One-step GitHub narrated MP4 workflow
+## Fully automated GitHub render (no user upload required)
 
-Upload the previously generated V3 MP4 to the repository using **Add file → Upload files** in the `assets` folder and name it **rag-v3.mp4** (repository path `assets/rag-v3.mp4`). The source is the 27-second V3 motion prototype, NOT the earlier static-slide video. If needed, download it from its ChatGPT attachment before uploading.
+The ChatGPT workspace's original video is not directly writable to GitHub as a binary through the current connector. To eliminate manual upload, **scripts/render_rag_v3.py** recreates the full-frame RAG animation from source entirely inside GitHub Actions.
 
-Then open `https://github.com/hassan274-max/thetechnoz-social-media/actions/workflows/rag-v3-kokoro.yml`, click **Run workflow**, and download the `rag-v3-kokoro-narrated-preview` artifact. This builds the fully mixed V3 MP4 with the free neural voice. It does not publish to YouTube.
+The workflow **Render RAG V3 with free natural Kokoro voice** (in `.github/workflows/rag-v3-kokoro.yml`) starts automatically when the renderer/workflow is committed. It:
 
-The main YouTube renderer `scripts/build_youtube_video.py` now uses Kokoro instead of eSpeak too. The old automatic publishing schedule remains paused because its current static-slide visual template has not met the requested professional standard.
+1. Installs Pillow, FFmpeg, Kokoro, and soundfile.
+2. Downloads the public open-weight model/voices into the temporary runner.
+3. Renders the 27-second RAG explainer from code.
+4. Synthesizes the five timed neural narration segments.
+5. Mixes the narration with original low-volume background music.
+6. Uploads `rag-v3-narrated.mp4` as a private GitHub Actions artifact.
+
+Workflow page: https://github.com/hassan274-max/thetechnoz-social-media/actions/workflows/rag-v3-kokoro.yml
+
+**Status:** source and pipeline committed; artifact delivery requires a successful GitHub Actions run. This pipeline does not publish on YouTube. The previous YouTube publishing automation remains paused until visual and narration review.
+
+Note: GitHub renders a reproducible recreation of the V3 animation, not a byte-for-byte copy of the MP4 previously created inside the ChatGPT workspace.
