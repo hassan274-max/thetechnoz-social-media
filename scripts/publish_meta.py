@@ -66,7 +66,7 @@ def check_image(url):
             magic = response.read(16)
             if response.status != 200 or mime not in ("image/png", "image/jpeg"):
                 raise RuntimeError(f"Image URL returned HTTP {response.status} with Content-Type {mime!r}")
-            if not (magic.startswith(b"\\x89PNG\\r\\n\\x1a\\n") or magic.startswith(b"\\xff\\xd8\\xff")):
+            if not (magic.startswith(b"\x89PNG\r\n\x1a\n") or magic.startswith(b"\xff\xd8\xff")):
                 raise RuntimeError("Image URL does not return a valid PNG or JPEG file")
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"Image URL returned HTTP {e.code}") from None
