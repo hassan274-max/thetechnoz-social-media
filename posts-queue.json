@@ -1,5 +1,5 @@
 {
-  "description": "Approved posts; retry requested after fixing silent failure detection. Publishing logs prevent repeats for recorded successes.",
+  "description": "Queued approved Meta posts. Second post uses direct GitHub raw PNG URL to avoid delayed GitHub Pages deployment.",
   "posts": [
     {
       "id": "intro-instagram-2026-11-26",
@@ -14,7 +14,7 @@
     {
       "id": "ai-automation-2026-11-26-01",
       "scheduled_at": "2026-11-26T00:00:00Z",
-      "image_url": "https://hassan274-max.github.io/thetechnoz-social-media/assets/ai-automation-20261126.png",
+      "image_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/ai-automation-20261126.png",
       "path": "assets/ai-automation-20261126.png",
       "caption": "Still spending hours on tasks that could be automated?\n\nAt TheTechnoz Solutions, we help businesses use AI in practical ways: automating repetitive work, building AI-powered tools and SaaS products, and turning business data into better decisions.\n\nWe also bring that thinking to e-commerce and Amazon private-label operations—from product research and PPC analysis to smarter day-to-day workflows.\n\nThe goal isn't AI for the sake of AI. It's saving time and making your business work better.\n\nTheTechnoz Solutions | Where AI Meets Business.\n\n#TheTechnozSolutions #AIAutomation #AIServices #SaaS #Ecommerce #AmazonPrivateLabel",
       "platforms": [
