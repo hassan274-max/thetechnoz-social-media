@@ -1,0 +1,66 @@
+name: Verify YouTube connection and test private Short upload
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: "Upload a video? Leave false to test connection only."
+        type: boolean
+        required: true
+        default: false
+      file:
+        description: "Repository MP4 file path (e.g., assets/reel-2026-11-26.mp4)"
+        type: string
+        required: false
+        default: ""
+      expected_channel_id:
+        description: "Expected UC... channel ID (required for upload)"
+        type: string
+        required: false
+        default: ""
+      video_title:
+        description: "YouTube Short title (required for upload)"
+        type: string
+        required: false
+        default: "TheTechnoz Solutions | AI Meets Business #Shorts"
+      privacy:
+        description: "Upload as private first"
+        type: choice
+        required: true
+        default: private
+        options:
+          - private
+          - unlisted
+permissions:
+  contents: read
+concurrency:
+  group: thetechnoz-youtube-uploader
+  cancel-in-progress: false
+jobs:
+  check-or-upload:
+    runs-on: ubuntu-latest
+    env:
+      YOUTUBE_CLIENT_SECRET_JSON: ${{ secrets.YOUTUBE_CLIENT_SECRET_JSON }}
+      YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Google YouTube client
+        run: python3 -m pip install --user google-api-python-client google-auth google-auth-httplib2
+      - name: Verify authorized channel, optionally upload a private Short
+        env:
+          WANT_UPLOAD: ${{ inputs.upload && 'true' || 'false' }}
+          VIDEO_FILE: ${{ inputs.file }}
+          EXPECTED_CHANNEL_ID: ${{ inputs.expected_channel_id }}
+          VIDEO_TITLE: ${{ inputs.video_title }}
+          PRIVACY: ${{ inputs.privacy }}
+        run: |
+          if [[ "$WANT_UPLOAD" == "true" ]]; then
+            python3 scripts/youtube_uploader.py \
+              --upload \
+              --file "$VIDEO_FILE" \
+              --title "$VIDEO_TITLE" \
+              --description "TheTechnoz Solutions | AI, SaaS and Amazon Private Label.\n#TheTechnozSolutions #Shorts" \
+              --expected-channel-id "$EXPECTED_CHANNEL_ID" \
+              --privacy "$PRIVACY"
+          else
+            python3 scripts/youtube_uploader.py
+          fi
