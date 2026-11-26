@@ -1,4 +1,4 @@
-name: Prepare daily image and Reel
+name: Prepare unique daily Meta image
 on:
   push:
     branches: [main]
@@ -7,15 +7,10 @@ on:
       - "scripts/prepare_daily.py"
       - "scripts/meta_uniqueness.py"
   schedule:
-    # 09:00 PKT (04:00 UTC); prepare today's 11AM image and 7PM Reel
+    # 09:00 PKT (04:00 UTC); prepare today's unique 11AM image
     - cron: "0 4 * * *"
   workflow_dispatch:
     inputs:
-      reel_only:
-        description: "Prepare and publish only first Reel for immediate test"
-        required: true
-        default: true
-        type: boolean
       day_offset:
         description: "0 for today, 1 for tomorrow (recommended for testing)"
         required: true
@@ -33,22 +28,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install media tools
-        run: |
-          python3 -m pip install --user Pillow
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg
-          ffmpeg -version | head -n 1
-      - name: Create image, five-second MP4, and queue records
+      - name: Install image renderer
+        run: python3 -m pip install --user Pillow
+      - name: Prepare original nonrepeating image and queue entry
         env:
           DAY_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.day_offset || (github.event_name == 'push' && '1' || '0') }}
-          REEL_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.reel_only && 'true' || 'false' }}
-        run: |
-          if [[ "$REEL_ONLY" == "true" ]]; then
-            python3 scripts/prepare_daily.py --day-offset "$DAY_OFFSET" --reel-only
-          else
-            python3 scripts/prepare_daily.py --day-offset "$DAY_OFFSET"
-          fi
+        run: python3 scripts/prepare_daily.py --day-offset "$DAY_OFFSET"
       - name: Notify owner when fresh content cannot be prepared
         if: failure()
         env:
@@ -68,20 +53,4 @@ jobs:
             git push
           else
             echo "No new content."
-          fi
-      - name: Publish Reel immediately for manual test
-        if: github.event_name == 'workflow_dispatch' && inputs.reel_only && inputs.day_offset == '0'
-        env:
-          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
-          PUBLISHING_ENABLED: ${{ vars.PUBLISHING_ENABLED }}
-          DRY_RUN: 'false'
-        run: python3 scripts/publish_reels.py
-      - name: Record Reel IDs
-        if: always() && github.event_name == 'workflow_dispatch' && inputs.reel_only && inputs.day_offset == '0'
-        run: |
-          if [[ -n "$(git status --porcelain publishing-log.json assets-manifest.json)" ]]; then
-            git add publishing-log.json assets-manifest.json
-            git commit -m "chore: record manual Reel publishing results"
-            git pull --rebase origin main
-            git push
           fi
