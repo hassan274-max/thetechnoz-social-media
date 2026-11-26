@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "description": "Only published files with delete_after at least 72 hours after published_at are eligible for cleanup. Add each new published image/video here after successful platform publishing. This only affects GitHub files, never Facebook/Instagram/YouTube posts.",
+  "assets": [
+    {
+      "path": "thetechnoz-introduction.png",
+      "status": "published",
+      "published_at": "2026-11-26T00:00:00Z",
+      "delete_after": "2026-12-01T00:00:00Z",
+      "notes": "Facebook introduction published 2026-11-26. Publication timestamp is date-only/conservative; deletion deliberately deferred until December 1."
+    }
+  ]
+}
