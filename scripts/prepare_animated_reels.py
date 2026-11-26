@@ -61,7 +61,7 @@ def prepare(day):
         item={"id":ident,"kind":"reel","scheduled_at":when.isoformat().replace("+00:00","Z"),
               "video_url":RAW+str(path),"image_url":None,"path":str(path),
               "caption":caption,"platforms":["facebook","instagram"],
-              "creative_version":VERSION,"editorial_id":spec["id"]}
+              "creative_version":VERSION,"editorial_id":spec["id"],"topic_category":spec["category"]}
         historic=[p for p in posts if p.get("id")!=ident]
         validate_unique(item,historic)
         # Preserve all historical records. Replace only unpublished placeholder
