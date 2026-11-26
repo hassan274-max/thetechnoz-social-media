@@ -116,7 +116,7 @@ def draw(d,spec,stage,t):
         if kind in ("citation_check","score"):
             circle(d,567,469,32,accent)
             label(d,(549,451),"✓",f(33),bg)
-    elif kind in ("ad","keyword","person_search","storefront","shopping_cart","product"):
+    elif kind in ("ad","shopper","keyword","person_search","storefront","shopping_cart","product","chat"):
         if kind=="ad":
             person(d,190,676,.78,accent,move=10*math.sin(t*2))
             box(d,(359,463,630,795),(240,248,251),24)
@@ -124,6 +124,18 @@ def draw(d,spec,stage,t):
             package(d,442,556,contrast,1.2)
             box(d,(391,721,596,759),accent,11)
             centered(d,494,724,"SHOP NOW",f(20),bg)
+        elif kind=="shopper":
+            person(d,224,665,.95,accent,move=12*math.sin(t*2))
+            box(d,(388,511,630,762),(242,248,251),20)
+            centered(d,510,530,"PRODUCT PAGE",f(18),bg)
+            package(d,459,599,contrast,.92)
+            arrow(d,(300,659),(380,659),t/1.3,accent)
+        elif kind=="chat":
+            person(d,180,683,.83,contrast,move=7*math.sin(t*2))
+            box(d,(322,473,634,616),(242,248,251),20)
+            centered(d,476,493,"HELLO, AI!",f(21),bg)
+            box(d,(344,670,614,788),(40,84,102),17,accent)
+            centered(d,482,695,"CURRENT CONTEXT",f(18),white)
         elif kind in ("person_search","keyword"):
             person(d,214,663,.9,contrast,move=6*math.sin(t*3))
             box(d,(333,474,642,586),(248,251,252),27)
