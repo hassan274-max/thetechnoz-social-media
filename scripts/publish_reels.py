@@ -76,6 +76,14 @@ def main():
             failures.append(f"{ident}: bad scheduled time")
             continue
         if when>utcnow():continue
+        # Only publish the professionally animated 20-35 second reviewed Reels.
+        # Legacy 4.8-second zoomed posters are not permitted in new posts.
+        old_status=ledger.get("posts",{}).get(ident,{})
+        if post.get("creative_version")!="animated-educational-v2":
+            if all(old_status.get(target,{}).get("status")=="published" for target in post.get("platforms",[])):
+                continue
+            print(f"Legacy or unapproved Reel {ident} BLOCKED; no upload attempted.")
+            continue
         url=post.get("video_url","")
         caption=post.get("caption","")
         targets=post.get("platforms",[])
