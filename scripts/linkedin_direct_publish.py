@@ -24,7 +24,7 @@ PERSON="personal"
 PAGE="company"
 TARGETS=(PERSON,PAGE)
 PKT=dt.timezone(dt.timedelta(hours=5))
-VERSION="202611"
+VERSION="202609"
 URL="https://api.linkedin.com/rest/posts"
 
 def git_save(note):
