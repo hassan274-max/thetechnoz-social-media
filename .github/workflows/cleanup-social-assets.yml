@@ -1,0 +1,31 @@
+name: Clean published social assets after 72 hours
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: social-asset-cleanup
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Remove expired published assets
+        run: python3 scripts/cleanup_images.py
+      - name: Commit manifest and asset cleanup
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "chore: clean expired published social media assets"
+            git push
+          else
+            echo "Nothing to clean."
+          fi
