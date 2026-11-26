@@ -47,6 +47,19 @@
         "facebook",
         "instagram"
       ]
+    },
+    {
+      "id": "2026-11-26-reel",
+      "kind": "reel",
+      "scheduled_at": "2026-11-26T14:00:00Z",
+      "image_url": null,
+      "video_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/reel-2026-11-26.mp4",
+      "path": "assets/reel-2026-11-26.mp4",
+      "caption": "LISTING IMAGES SELL\n\nWhen your Amazon listing isn't converting, compare the value proposition, main image and competitor offer before rewriting every keyword.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ]
     }
   ]
 }
