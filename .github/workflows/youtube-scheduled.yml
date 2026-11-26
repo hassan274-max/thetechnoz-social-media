@@ -48,7 +48,12 @@ jobs:
       - name: Install renderer, narrator and YouTube API
         run: |
           # Avoid hosted-runner third-party apt feeds that may return 403.
-          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list /etc/apt/sources.list.d/microsoft-prod.sources
+          for source in /etc/apt/sources.list.d/*; do
+            if [ -f "$source" ] && grep -q 'packages.microsoft.com' "$source"; then
+              echo "Disabling unavailable third-party apt feed: $(basename "$source")"
+              sudo mv "$source" "$source.disabled"
+            fi
+          done
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg espeak-ng
           ffmpeg -version | head -n 1
