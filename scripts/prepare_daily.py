@@ -76,12 +76,16 @@ def create_poster(path, topic, hook, subtitle, square=False):
 
 def make_video(poster, output):
     output.parent.mkdir(parents=True,exist_ok=True)
-    # 4.8 seconds at 30fps. Subtle animated push-in, quiet AAC audio.
+    # 4.8 seconds at 30fps. Original soft synthesizer sound, no licensed music.
     command=[
         "ffmpeg","-hide_banner","-loglevel","error","-y","-loop","1","-framerate","30","-i",str(poster),
-        "-f","lavfi","-i","anullsrc=channel_layout=stereo:sample_rate=48000",
-        "-filter_complex","[0:v]zoompan=z='min(zoom+0.00024,1.045)':d=144:s=720x1280:fps=30,format=yuv420p[v]",
-        "-map","[v]","-map","1:a","-frames:v","144",
+        "-f","lavfi","-i","sine=frequency=220:sample_rate=48000:duration=4.8",
+        "-f","lavfi","-i","sine=frequency=330:sample_rate=48000:duration=4.8",
+        "-filter_complex",
+        "[0:v]zoompan=z='min(zoom+0.00024,1.045)':d=144:s=720x1280:fps=30,format=yuv420p[v];"
+        "[1:a][2:a]amix=inputs=2:duration=first:normalize=1,"
+        "volume=0.20,afade=t=in:st=0:d=0.45,afade=t=out:st=4.0:d=0.8[a]",
+        "-map","[v]","-map","[a]","-frames:v","144",
         "-c:v","libx264","-preset","veryfast","-crf","24","-r","30",
         "-c:a","aac","-b:a","128k","-ar","48000","-t","4.8",
         "-movflags","+faststart",str(output)]
