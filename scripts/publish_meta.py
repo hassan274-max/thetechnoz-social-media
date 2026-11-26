@@ -79,11 +79,14 @@ def main():
     log = load(LOG, {"posts": {}})
     now = utcnow()
     if not ENABLED:
-        print("Publishing disabled. Set GitHub Actions variable PUBLISHING_ENABLED=true after setup.")
-        return
+        print("ERROR: Publishing disabled. Set repository variable PUBLISHING_ENABLED=true.")
+        sys.exit(2)
     if not TOKEN and not DRY_RUN:
-        print("META_PAGE_ACCESS_TOKEN secret missing. No posts attempted.")
-        return
+        print("ERROR: META_PAGE_ACCESS_TOKEN repository secret missing. No posts attempted.")
+        sys.exit(2)
+    failures = []
+    due_count = 0
+    published_count = 0
     for post in queue:
         ident = str(post.get("id", ""))
         scheduled = post.get("scheduled_at", "")
@@ -96,6 +99,7 @@ def main():
             continue
         if when > now:
             continue
+        due_count += 1
         caption = post.get("caption", "").strip()
         img = post.get("image_url", "")
         targets = post.get("platforms", [])
@@ -129,12 +133,18 @@ def main():
                     media_id = result["id"]
                 status[target] = {"status": "published", "id": media_id, "published_at": utcnow().isoformat()}
                 save(LOG, log)
+                published_count += 1
                 print(f"Published {ident} to {target}, ID={media_id}")
             except Exception as exc:
-                print(f"Could not publish {ident} to {target}: {exc}")
+                failures.append(f"{ident} -> {target}: {exc}")
+                print(f"ERROR: Could not publish {ident} to {target}: {exc}")
         # Only mark eligible for asset cleanup once every listed target is published.
         if targets and all(status.get(t, {}).get("status") == "published" for t in targets):
             ensure_manifest(post, utcnow())
+
+    print(f"Summary: {due_count} due queued posts; {published_count} newly published platform posts; {len(failures)} errors.")
+    if failures:
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
