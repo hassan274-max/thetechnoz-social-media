@@ -1,0 +1,37 @@
+name: Publish scheduled Facebook and Instagram posts
+on:
+  schedule:
+    # 11:00 and 19:00 Pakistan Standard Time (UTC+5).
+    - cron: "0 6,14 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Do not publish; validate due queue items"
+        required: true
+        type: boolean
+        default: true
+permissions:
+  contents: write
+concurrency:
+  group: thetechnoz-meta-publishing
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+      PUBLISHING_ENABLED: ${{ vars.PUBLISHING_ENABLED }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish queued posts
+        run: python3 scripts/publish_meta.py
+      - name: Commit published IDs and retention entries
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add publishing-log.json assets-manifest.json
+            git commit -m "chore: record Meta publishing results"
+            git push
+          fi
