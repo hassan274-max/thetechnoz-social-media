@@ -1,0 +1,80 @@
+name: Produce original animated Facebook Instagram Reels
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/prepare-animated-reels.yml"
+  schedule:
+    # 12:00 Pakistan Standard Time; publish at 19:00 via existing Reel workflow.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      day_offset:
+        description: "0 today, 1 tomorrow; preparation does not publish"
+        type: choice
+        default: "0"
+        options: ["0","1"]
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: thetechnoz-animated-meta-content
+  cancel-in-progress: false
+jobs:
+  make-animated-reel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install narration and animated media tools
+        run: |
+          for source in /etc/apt/sources.list.d/*; do
+            if [ -f "$source" ] && grep -q 'packages.microsoft.com' "$source"; then
+              sudo mv "$source" "$source.disabled"
+            fi
+          done
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install Pillow numpy kokoro-onnx soundfile
+          curl -fL --retry 3 -o kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx
+          curl -fL --retry 3 -o voices-v1.0.bin https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin
+          test "$(stat -c%s kokoro-v1.0.onnx)" -gt 10000000
+          test "$(stat -c%s voices-v1.0.bin)" -gt 1000000
+      - name: Render reviewed animated educational Reel and check all queued post uniqueness
+        env:
+          DAY_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.day_offset || '0' }}
+        run: |
+          python -m py_compile scripts/meta_uniqueness.py scripts/prepare_animated_reels.py scripts/render_educational_short.py
+          python scripts/prepare_animated_reels.py --day-offset "$DAY_OFFSET"
+          python - <<'PY'
+          import sys,json
+          from pathlib import Path
+          sys.path.insert(0,"scripts")
+          from meta_uniqueness import check_queue
+          check_queue(json.loads(Path("posts-queue.json").read_text())["posts"])
+          print("Meta queue has no duplicate headlines, captions or assets")
+          PY
+      - name: Save original Reel and queue for later scheduled Meta publishing
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/reel-*.mp4 posts-queue.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: prepare original narrated educational Meta Reel"
+            git push origin HEAD:main
+          else
+            echo "No new Reel to prepare"
+          fi
+      - name: Notify if no fresh approved content or rendering fails
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Action required: animated Meta Reel production stopped"
+          if ! gh issue list --state open --json title --jq '.[].title' | grep -Fxq "$TITLE"; then
+            gh issue create --title "$TITLE" --body "The animated Meta Reel generator failed or has exhausted the 14 approved original scripts. It refuses to repeat content. See GitHub Actions: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
