@@ -1,8 +1,8 @@
-name: Direct LinkedIn — personal and company
+name: Direct LinkedIn — personal profile only
 on:
   schedule:
     # 10:00 and 18:00 Pakistan time, one original AI and Amazon PPC post
-    # per slot, cross-posted to both authorized destinations.
+    # per slot, published only to the user's personal profile.
     - cron: "0 5 * * *"
     - cron: "0 13 * * *"
   workflow_dispatch:
@@ -26,7 +26,6 @@ jobs:
       LINKEDIN_DIRECT_ENABLED: ${{ vars.LINKEDIN_DIRECT_ENABLED }}
       LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
       LINKEDIN_PERSON_URN: ${{ secrets.LINKEDIN_PERSON_URN }}
-      LINKEDIN_ORGANIZATION_URN: ${{ secrets.LINKEDIN_ORGANIZATION_URN }}
       EVENT_NAME: ${{ github.event_name }}
       EVENT_SCHEDULE: ${{ github.event.schedule }}
       INPUT_SLOT: ${{ inputs.slot }}
@@ -55,7 +54,7 @@ jobs:
           assert isinstance(log["posts"],dict)
           print(f"{len(q['posts'])} original post drafts passed uniqueness checks")
           PY
-      - name: Publish strictly due slot to both destinations when authorized
+      - name: Publish strictly due slot to personal profile when authorized
         env:
           APPROVED_SLOT: ${{ github.event_name == 'schedule' && github.event.schedule == '0 5 * * *' && 'ai' || github.event_name == 'schedule' && github.event.schedule == '0 13 * * *' && 'amazon' || inputs.slot }}
         run: |
