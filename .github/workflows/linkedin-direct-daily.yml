@@ -61,6 +61,14 @@ jobs:
           assert isinstance(log["posts"],dict)
           print(f"{len(q['posts'])} original post drafts passed uniqueness checks")
           PY
+      - name: Verify configured OAuth identity without publishing
+        if: github.event_name != 'schedule'
+        run: |
+          if [ -n "$LINKEDIN_ACCESS_TOKEN" ] && [ -n "$LINKEDIN_PERSON_URN" ]; then
+            python scripts/linkedin_direct_publish.py --slot ai --verify-connection
+          else
+            echo "Personal OAuth credentials not yet added; no publish attempted."
+          fi
       - name: Publish strictly due slot to personal profile when authorized
         env:
           APPROVED_SLOT: ${{ github.event_name == 'schedule' && github.event.schedule == '0 5 * * *' && 'ai' || github.event_name == 'schedule' && github.event.schedule == '0 13 * * *' && 'amazon' || inputs.slot }}
