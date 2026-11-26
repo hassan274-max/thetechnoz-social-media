@@ -8,6 +8,7 @@ import json
 import subprocess
 import tempfile
 from original_audio import build as build_original_audio
+from meta_uniqueness import check_queue, validate_unique, normalized, headline
 from datetime import datetime, timedelta, date, time as daytime, timezone
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -105,37 +106,61 @@ def main():
     ap.add_argument("--reel-only",action="store_true",help="Prepare only Reel for immediate manual test")
     args=ap.parse_args()
     target=datetime.now(PKT).date()+timedelta(days=args.day_offset)
-    # Distinct topic for image and Reel each day.
-    idx=(target.toordinal() % len(TOPICS))
-    a=TOPICS[idx]; b=TOPICS[(idx+7) % len(TOPICS)]
-    datekey=target.isoformat()
-    photo=Path(f"assets/daily-{datekey}.png")
-    reel=Path(f"assets/reel-{datekey}.mp4")
-    frame=Path(f"assets/reel-frame-{datekey}.png")
-    if not args.reel_only:
-        create_poster(ROOT/photo,*a[:3],square=True)
-    create_poster(ROOT/frame,*b[:3])
-    make_video(ROOT/frame,ROOT/reel)
-    (ROOT/frame).unlink() # Do not store additional full-size intermediate image.
-
     queue=json.loads(QUEUE.read_text(encoding="utf-8"))
-    ids={p.get("id") for p in queue.get("posts",[])}
-    common={"platforms":["facebook","instagram"]}
-    for hour,kind,path,t in [
-        (11,"image",photo,a),(19,"reel",reel,b)]:
+    history=queue.get("posts",[])
+    # Never use modular arithmetic to recycle TOPICS. The queue is our
+    # permanent historical audit even after old media assets are cleaned up.
+    check_queue(history)
+    datekey=target.isoformat()
+    used={headline(p) for p in history}
+    ids={p.get("id") for p in history}
+    pending=[]
+    # Alternate which topic category is used for the photo vs Reel each day.
+    first_category="AI" if target.toordinal()%2==0 else "Amazon PL"
+    second_category="Amazon PL" if first_category=="AI" else "AI"
+    slots=[(11,"image",Path(f"assets/daily-{datekey}.png"),first_category),
+           (19,"reel",Path(f"assets/reel-{datekey}.mp4"),second_category)]
+    for hour,kind,path,category in slots:
+        if args.reel_only and kind!="reel":
+            continue
         ident=f"{datekey}-{kind}"
-        if ident in ids or (args.reel_only and kind!="reel"):continue
+        if ident in ids:
+            print(f"Already queued {ident}; not generating again")
+            continue
+        candidates=[t for t in TOPICS if t[0]==category and normalized(t[1]) not in used]
+        if not candidates:
+            raise RuntimeError(f"CONTENT_EXHAUSTED: no unused {category} topics for {kind}. "
+                               "No post prepared. Add and review original topics before publishing.")
+        t=candidates[0]
+        used.add(normalized(t[1]))
         when=datetime.combine(target,daytime(hour),PKT).astimezone(timezone.utc)
         topic,hook,subtitle,body=t
-        caption=(f"{hook}\n\n{body}\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n"
-                "#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce")
-        queue["posts"].append({
-           "id":ident,"kind":kind,"scheduled_at":when.isoformat().replace("+00:00","Z"),
-           "image_url":RAW+str(path) if kind=="image" else None,
-           "video_url":RAW+str(path) if kind=="reel" else None,
-           "path":str(path),"caption":caption,**common})
-    QUEUE.write_text(json.dumps(queue,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
-    print(f"Prepared {target}: {photo}, {reel}")
+        caption=(f"{hook}\\n\\n{body}\\n\\nTheTechnoz Solutions — Where AI Meets Business.\\n\\n"
+                 "#TheTechnozSolutions #ArtificialIntelligence #AmazonPrivateLabel #AIAutomation #Ecommerce")
+        entry={"id":ident,"kind":kind,"scheduled_at":when.isoformat().replace("+00:00","Z"),
+               "image_url":RAW+str(path) if kind=="image" else None,
+               "video_url":RAW+str(path) if kind=="reel" else None,
+               "path":str(path),"caption":caption,
+               "platforms":["facebook","instagram"]}
+        validate_unique(entry,history+pending)
+        pending.append((entry,t))
+    if not pending:
+        print("All requested slots already queued. No new items or duplicates.")
+        return
+    # Validate all entries before expensive rendering or changing the queue.
+    for entry,t in pending:
+        path=ROOT/entry["path"]
+        if entry["kind"]=="image":
+            create_poster(path,*t[:3],square=True)
+        else:
+            frame=ROOT/Path(f"assets/reel-frame-{datekey}.png")
+            create_poster(frame,*t[:3])
+            make_video(frame,path)
+            frame.unlink()
+        queue["posts"].append(entry)
+    check_queue(queue["posts"])
+    QUEUE.write_text(json.dumps(queue,ensure_ascii=False,indent=2)+"\\n",encoding="utf-8")
+    print(f"Prepared {len(pending)} strictly unique posts for {target}; no topic reuse.")
 
 if __name__=="__main__":
     main()
