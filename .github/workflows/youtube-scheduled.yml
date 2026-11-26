@@ -1,0 +1,184 @@
+name: Scheduled TheTechnoz YouTube Shorts and Tutorials
+on:
+  schedule:
+    # One educational Short daily at 18:00 PKT (13:00 UTC)
+    - cron: "0 13 * * *"
+    # Weekly tutorial on Saturday at 15:00 PKT (10:00 UTC)
+    - cron: "0 10 * * 6"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/youtube-scheduled.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Preview one video or run due scheduled upload"
+        required: true
+        type: choice
+        default: preview
+        options: [preview, publish_due]
+      kind:
+        description: "Used only for preview (short or tutorial)"
+        required: true
+        type: choice
+        default: short
+        options: [short, tutorial]
+permissions:
+  contents: write
+concurrency:
+  group: thetechnoz-youtube-scheduled
+  cancel-in-progress: false
+jobs:
+  produce-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      YOUTUBE_CLIENT_SECRET_JSON: ${{ secrets.YOUTUBE_CLIENT_SECRET_JSON }}
+      YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
+      CHANNEL_ID: UCIwmarXnoB7vvssN9OxEeDA
+      EVENT_NAME: ${{ github.event_name }}
+      EVENT_SCHEDULE: ${{ github.event.schedule }}
+      MANUAL_MODE: ${{ inputs.mode }}
+      MANUAL_KIND: ${{ inputs.kind }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install renderer, narrator and YouTube API
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng
+          python3 -m pip install --user Pillow google-api-python-client google-auth google-auth-httplib2
+      - name: Determine due editorial item and verify upload ledger
+        id: plan
+        run: |
+          python3 - <<'PY'
+          import os,json
+          from datetime import datetime,timedelta,timezone,date
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, 'scripts')
+          from youtube_editorial import scheduled_topic,scheduled_tutorial
+          pkt=timezone(timedelta(hours=5))
+          today=datetime.now(pkt).date()
+          event=os.environ['EVENT_NAME']
+          if event=='schedule':
+              kind='tutorial' if os.environ.get('EVENT_SCHEDULE')=='0 10 * * 6' else 'short'
+              mode='publish_due'
+          elif event=='workflow_dispatch':
+              kind=os.environ.get('MANUAL_KIND') or 'short'
+              mode=os.environ.get('MANUAL_MODE') or 'preview'
+          else:
+              kind='short'
+              mode='preview'
+          # For manual preview use first available catalog entry instead of
+          # attempting to publish a not-yet-due episode.
+          if mode=='preview':
+              day=date(2026,12,5) if kind=='tutorial' else date(2026,11,30)
+          else:
+              day=today
+          doc=scheduled_tutorial(day) if kind=='tutorial' else scheduled_topic(day)
+          ledger_path=Path('youtube-publishing-log.json')
+          ledger=json.loads(ledger_path.read_text()) if ledger_path.exists() else {'posts':{}}
+          existing=ledger.get('posts',{}).get(doc['id'],{}) if doc else {}
+          can_run=bool(doc) and (mode=='preview' or not existing)
+          print(f'Mode={mode}, kind={kind}, date={day}, item={doc["id"] if doc else "none"}, existing={existing.get("status", "none")}')
+          if mode=='publish_due' and not doc:
+              print('No unused scheduled editorial script. Skipping; add original topics.')
+          if existing and mode=='publish_due':
+              print('Previously claimed or published. No duplicate attempt.')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('ready='+('true' if can_run else 'false')+'\n')
+              out.write('kind='+kind+'\n')
+              out.write('date='+str(day)+'\n')
+              out.write('item_id='+(doc['id'] if doc else '')+'\n')
+              out.write('mode='+mode+'\n')
+          PY
+      - name: Render and validate original video
+        if: steps.plan.outputs.ready == 'true'
+        run: |
+          python3 scripts/build_youtube_video.py \
+            --date "${{ steps.plan.outputs.date }}" \
+            --kind "${{ steps.plan.outputs.kind }}" \
+            --output "/tmp/thetechnoz-youtube-video.mp4"
+          ffprobe -v error -show_entries stream=codec_type,codec_name:format=duration \
+            -of json /tmp/thetechnoz-youtube-video.mp4
+      - name: Publish validation preview as workflow artifact
+        if: steps.plan.outputs.ready == 'true' && steps.plan.outputs.mode == 'preview'
+        uses: actions/upload-artifact@v4
+        with:
+          name: thetechnoz-${{ steps.plan.outputs.kind }}-preview
+          path: |
+            /tmp/thetechnoz-youtube-video.mp4
+            /tmp/thetechnoz-youtube-video.json
+          retention-days: 3
+      - name: Claim upload before sending to YouTube
+        if: steps.plan.outputs.ready == 'true' && steps.plan.outputs.mode == 'publish_due'
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from datetime import datetime,timezone
+          from pathlib import Path
+          path=Path('youtube-publishing-log.json')
+          doc=json.loads(path.read_text()) if path.exists() else {'posts':{}}
+          item=os.environ['ITEM_ID']
+          if item in doc.setdefault('posts',{}):
+              raise SystemExit('Existing upload claim: refusing to repeat')
+          doc['posts'][item]={
+             'status':'attempted', 'at':datetime.now(timezone.utc).isoformat(),
+             'note':'If upload fails or completion is uncertain, check YouTube Studio before retrying'}
+          path.write_text(json.dumps(doc,indent=2)+'\n')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add youtube-publishing-log.json
+          git commit -m "chore: claim YouTube upload ${{ steps.plan.outputs.item_id }}"
+          git push
+        env:
+          ITEM_ID: ${{ steps.plan.outputs.item_id }}
+      - name: Upload verified public video
+        if: steps.plan.outputs.ready == 'true' && steps.plan.outputs.mode == 'publish_due'
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          info=json.loads(Path('/tmp/thetechnoz-youtube-video.json').read_text())
+          args=[
+            'python3','scripts/youtube_uploader.py','--upload',
+            '--file',info['file'],'--expected-channel-id','UCIwmarXnoB7vvssN9OxEeDA',
+            '--title',info['title'],'--description',info['description'],'--privacy','public']
+          with open('/tmp/youtube-upload-result.log','w') as f:
+              process=subprocess.run(args,stdout=f,stderr=subprocess.STDOUT,text=True)
+          text=Path('/tmp/youtube-upload-result.log').read_text()
+          # Avoid printing credentials or raw API JSON.
+          import re
+          match=re.search(r'UPLOAD SUCCESS: https://www.youtube.com/watch\?v=([\w-]+)',text)
+          if not match:
+              print('YouTube upload failed or is uncertain. Check Studio and claim ledger before any retry.')
+              raise SystemExit(1)
+          Path('/tmp/youtube-confirmed-id.txt').write_text(match.group(1))
+          print('UPLOAD SUCCESS: https://www.youtube.com/watch?v='+match.group(1))
+          if process.returncode:
+              raise SystemExit(process.returncode)
+          PY
+      - name: Save confirmed YouTube video ID
+        if: steps.plan.outputs.ready == 'true' && steps.plan.outputs.mode == 'publish_due' && success()
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from datetime import datetime,timezone
+          from pathlib import Path
+          path=Path('youtube-publishing-log.json')
+          doc=json.loads(path.read_text())
+          item=os.environ['ITEM_ID']
+          vid=Path('/tmp/youtube-confirmed-id.txt').read_text().strip()
+          doc['posts'][item]={
+            'status':'published','id':vid,'url':'https://www.youtube.com/watch?v='+vid,
+            'published_at':datetime.now(timezone.utc).isoformat(),
+            'channel_id':'UCIwmarXnoB7vvssN9OxEeDA'}
+          path.write_text(json.dumps(doc,indent=2)+'\n')
+          PY
+          git add youtube-publishing-log.json
+          git commit -m "chore: record verified YouTube upload ${{ steps.plan.outputs.item_id }}"
+          git push
+        env:
+          ITEM_ID: ${{ steps.plan.outputs.item_id }}
