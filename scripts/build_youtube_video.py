@@ -48,17 +48,17 @@ def slide(filepath,category,title,body,footer,wide=False):
     d.rounded_rectangle((m,m,w-m,h-m),radius=30,outline=(57,147,200),width=3)
     d.text((m+35,m+36),"THE TECHNOZ SOLUTIONS",font=font(27 if wide else 23),fill=(224,247,255))
     d.text((m+35,m+120),category.upper()+"  /  EDUCATION",font=font(23),fill=(77,226,241))
-    y=m+183
-    tfont=font(50 if wide else 49)
+    y=m+(138 if wide else 183)
+    tfont=font(42 if wide else 49)
     for line in wrap(d,title.upper(),tfont,w-2*m-75):
         d.text((m+35,y),line,font=tfont,fill=(255,255,255))
-        y+=68
-    y+=45
-    bfont=font(29 if wide else 31,False)
-    max_lines=7 if wide else 13
+        y+=58 if wide else 68
+    y+=25 if wide else 45
+    bfont=font(23 if wide else 31,False)
+    max_lines=5 if wide else 13
     for line in wrap(d,body,bfont,w-2*m-75)[:max_lines]:
         d.text((m+35,y),line,font=bfont,fill=(198,220,236))
-        y+=48
+        y+=36 if wide else 48
     d.rounded_rectangle((m+30,h-m-110,w-m-30,h-m-29),radius=15,fill=(21,66,94))
     d.text((m+48,h-m-84),footer,font=font(21 if wide else 20),fill=(216,241,249))
     filepath.parent.mkdir(parents=True,exist_ok=True)
@@ -116,7 +116,7 @@ def render(doc,out):
         visual=voice_text if wide else (doc["narration"] if i==1 else heading_text)
         slide(frame,doc["category"],heading_text,visual,
               "Where AI Meets Business  •  TheTechnoz Solutions",wide)
-        speech(voice_text,wav,rate=112 if wide else 151)
+        speech(voice_text,wav,rate=112 if wide else 162)
         seconds=segment(frame,wav,clip,wide,min_sec=0)
         segments.append((clip,seconds))
     playlist=work/"playlist.txt"
@@ -125,8 +125,8 @@ def render(doc,out):
          "-f","concat","-safe","0","-i",str(playlist),
          "-c","copy","-movflags","+faststart",str(out)])
     seconds=duration(out)
-    if doc["kind"]=="short" and not 18 <= seconds <= 60:
-        raise RuntimeError(f"Short is {seconds:.1f}s; expected 18–60s")
+    if doc["kind"]=="short" and not 20 <= seconds <= 38:
+        raise RuntimeError(f"Short is {seconds:.1f}s; expected roughly 20–30 seconds (maximum 38s)")
     if doc["kind"]=="tutorial" and not 270 <= seconds <= 600:
         raise RuntimeError(f"Tutorial is {seconds:.1f}s; target roughly 5–8 minutes; revise narration")
     return seconds
