@@ -93,6 +93,7 @@ def make_video(poster, output):
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--day-offset",type=int,default=0)
+    ap.add_argument("--reel-only",action="store_true",help="Prepare only Reel for immediate manual test")
     args=ap.parse_args()
     target=datetime.now(PKT).date()+timedelta(days=args.day_offset)
     # Distinct topic for image and Reel each day.
@@ -102,8 +103,9 @@ def main():
     photo=Path(f"assets/daily-{datekey}.png")
     reel=Path(f"assets/reel-{datekey}.mp4")
     frame=Path(f"assets/reel-frame-{datekey}.png")
-    create_poster(ROOT/photo,*a,square=True)
-    create_poster(ROOT/frame,*b)
+    if not args.reel_only:
+        create_poster(ROOT/photo,*a[:3],square=True)
+    create_poster(ROOT/frame,*b[:3])
     make_video(ROOT/frame,ROOT/reel)
     (ROOT/frame).unlink() # Do not store additional full-size intermediate image.
 
@@ -113,7 +115,7 @@ def main():
     for hour,kind,path,t in [
         (11,"image",photo,a),(19,"reel",reel,b)]:
         ident=f"{datekey}-{kind}"
-        if ident in ids:continue
+        if ident in ids or (args.reel_only and kind!="reel"):continue
         when=datetime.combine(target,daytime(hour),PKT).astimezone(timezone.utc)
         topic,hook,subtitle,body=t
         caption=(f"{hook}\n\n{body}\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n"
