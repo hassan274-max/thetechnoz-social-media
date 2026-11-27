@@ -3,9 +3,11 @@
   "channel_id": "UCIwmarXnoB7vvssN9OxEeDA",
   "posts": {
     "short-2026-11-27": {
-      "status": "attempted",
-      "claimed_at": "2026-11-27T14:27:21.367589+00:00",
-      "note": "Check Studio before any retry if outcome is uncertain"
+      "status": "published",
+      "id": "iMJX-07shUg",
+      "url": "https://www.youtube.com/watch?v=iMJX-07shUg",
+      "published_at": "2026-11-27T14:27:24.805701+00:00",
+      "channel_id": "UCIwmarXnoB7vvssN9OxEeDA"
     }
   }
 }
