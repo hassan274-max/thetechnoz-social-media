@@ -2,9 +2,10 @@
   "posts": {
     "2026-11-27-image": {
       "personal": {
-        "status": "attempted",
-        "at": "2026-11-27T15:57:46.945332+00:00",
-        "kind": "image"
+        "status": "published",
+        "post_id": "urn:li:share:7532110440395403264",
+        "kind": "image",
+        "at": "2026-11-27T15:57:49.292729+00:00"
       }
     }
   }
