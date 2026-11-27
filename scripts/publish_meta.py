@@ -34,9 +34,9 @@ def load(path, default):
 def save(path, document):
     path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-def graph(method, endpoint, params):
+def graph(method, endpoint, params, token_override=None):
     data = dict(params)
-    data["access_token"] = TOKEN
+    data["access_token"] = token_override or TOKEN
     url = f"{API}/{endpoint.lstrip('/')}"
     if method == "GET":
         url += "?" + urllib.parse.urlencode(data)
@@ -57,6 +57,18 @@ def graph(method, endpoint, params):
     if "error" in result:
         raise RuntimeError(f"Graph API returned error code {result['error'].get('code')}")
     return result
+
+
+def facebook_page_token():
+    """Get Facebook Page-scoped credential in memory from the system-user token.
+
+    Never print, log or persist either token. The system user can resolve it
+    only when the correct Page asset and app permissions are assigned.
+    """
+    response=graph("GET",PAGE_ID,{"fields":"id,access_token"})
+    if response.get("id")!=PAGE_ID or not response.get("access_token"):
+        raise RuntimeError("Meta token cannot derive Page access token; check Page assignment and pages_manage_posts")
+    return response["access_token"]
 
 
 def check_image(url):
@@ -143,7 +155,7 @@ def main():
                 continue
             try:
                 if target == "facebook":
-                    result = graph("POST", f"{PAGE_ID}/photos", {"url": img, "caption": caption, "published": "true"})
+                    result = graph("POST", f"{PAGE_ID}/photos", {"url": img, "caption": caption, "published": "true"}, token_override=facebook_page_token())
                     media_id = result.get("post_id") or result["id"]
                 else:
                     ig_caption=instagram_caption(caption,post.get("topic_category") or caption.splitlines()[0])
