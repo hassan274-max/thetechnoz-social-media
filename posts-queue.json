@@ -1,5 +1,5 @@
 {
-  "description": "Queued approved Meta posts. Second post uses direct GitHub raw PNG URL to avoid delayed GitHub Pages deployment.",
+  "description": "Approved unique Meta posts. Publishing is fail-closed against repeats; 2026-11-27 11:00 PKT missed scheduled execution and recovery triggered from updated queue.",
   "posts": [
     {
       "id": "intro-instagram-2026-11-26",
