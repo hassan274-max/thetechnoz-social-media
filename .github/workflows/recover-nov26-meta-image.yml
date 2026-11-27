@@ -1,0 +1,52 @@
+name: Recover November 26 missed Meta image
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/recover-nov26-meta-image.yml"
+permissions:
+  contents: write
+concurrency:
+  group: thetechnoz-meta-content-preparation
+  cancel-in-progress: false
+jobs:
+  prepare-missed-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install poster renderer
+        run: python3 -m pip install Pillow
+      - name: Prepare missed November 26 image without topic repetition
+        run: |
+          set -euo pipefail
+          if grep -q '"id": "2026-11-26-image"' posts-queue.json; then
+            echo "November 26 image already queued. Do not generate another."
+            exit 0
+          fi
+          python3 scripts/prepare_daily.py --day-offset -1
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          queue=json.loads(Path("posts-queue.json").read_text())
+          p=[x for x in queue["posts"] if x["id"]=="2026-11-26-image"]
+          assert len(p)==1
+          assert Path(p[0]["path"]).is_file()
+          from sys import path as sys_path
+          sys_path.insert(0,"scripts")
+          from meta_uniqueness import check_queue
+          check_queue(queue["posts"])
+          print("Unique missed image ready; queued for immediate Meta publishing.")
+          PY
+      - name: Commit unique November 26 image and trigger publisher
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add posts-queue.json assets/daily-2026-11-26.png
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: queue missing November 26 image for immediate Meta publishing"
+            git push origin HEAD:main
+          fi
