@@ -6,6 +6,7 @@ on:
       - ".github/workflows/linkedin-direct-daily.yml"
       - "scripts/linkedin_media_publish.py"
       - "linkedin-direct-queue.json"
+      - "linkedin-post-now.json"
   schedule:
     - cron: "0 7 * * *"   # 12:00 Pakistan time — image
     - cron: "0 14 * * *"  # 19:00 Pakistan time — reel
@@ -56,14 +57,17 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ "$EVENT_NAME" != "schedule" ]; then
+          if [ "$EVENT_NAME" = "push" ] && git diff-tree --no-commit-id --name-only -r HEAD | grep -Fxq "linkedin-post-now.json"; then
+            echo "Explicit immediate one-time image requested"
+            python scripts/linkedin_media_publish.py --slot image --now
+          elif [ "$EVENT_NAME" != "schedule" ]; then
             echo "Manual/push execution is dry-run only"
             python scripts/linkedin_media_publish.py --slot "$SLOT" --dry-run
           else
             python scripts/linkedin_media_publish.py --slot "$SLOT"
           fi
       - name: Alert on scheduled failures
-        if: failure() && github.event_name == 'schedule'
+        if: failure() && (github.event_name == 'schedule' || github.event_name == 'push')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
