@@ -94,5 +94,5 @@
       "topic_category": "Amazon"
     }
   ],
-  "token_recovery_check": "2026-11-27 retry after new Meta token saved; preserve all post IDs and historical records"
+  "token_recovery_check": "2026-11-27 retry Facebook with Page-scoped token; confirmed Instagram ID 18417518989091248 is already logged and must be skipped."
 }
