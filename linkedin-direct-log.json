@@ -1,3 +1,11 @@
 {
-  "posts": {}
+  "posts": {
+    "2026-11-27-image": {
+      "personal": {
+        "status": "attempted",
+        "at": "2026-11-27T15:57:46.945332+00:00",
+        "kind": "image"
+      }
+    }
+  }
 }
