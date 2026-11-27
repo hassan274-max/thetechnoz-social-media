@@ -22,6 +22,7 @@ on:
         options: [ai, amazon]
 permissions:
   contents: write
+  issues: write
 concurrency:
   group: thetechnoz-direct-linkedin-posting
   cancel-in-progress: false
@@ -79,9 +80,19 @@ jobs:
             exit 0
           fi
           if [ "$LINKEDIN_DIRECT_ENABLED" != "true" ]; then
-            echo "LinkedIn OAuth/config not confirmed. Posting disabled. No upload."
-            exit 0
+            echo "ERROR: LinkedIn OAuth/config not confirmed. No upload. Credentials/activation required."
+            exit 1
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           python scripts/linkedin_direct_publish.py --slot "$APPROVED_SLOT"
+      - name: Open actionable issue if scheduled LinkedIn posting fails
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DAY="$(TZ=Asia/Karachi date +%Y-%m-%d)"
+          TITLE="Action required: LinkedIn direct publishing failed on $DAY"
+          if ! gh issue list --state all --limit 100 --json title --jq '.[].title' | grep -Fxq "$TITLE"; then
+            gh issue create --title "$TITLE" --body "The personal-profile LinkedIn workflow failed or was not configured. No posting success should be inferred from a skipped run. Complete LinkedIn OAuth setup, validate the authorized member, and inspect the publishing log before recovery. Actions: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
