@@ -69,13 +69,25 @@ def due_post(slot):
     return p
 
 def author(target):
+    """Resolve current authorized member using the token, not a second secret."""
     if target!=PERSON:
         raise RuntimeError("Company Page publishing is not in scope")
-    urn=os.getenv("LINKEDIN_PERSON_URN","").strip()
-    pattern=r"urn:li:person:[A-Za-z0-9_-]+"
-    if not re.fullmatch(pattern,urn):
-        raise RuntimeError("Missing verified LinkedIn "+target+" author URN")
-    return urn
+    access=token()
+    if any(ord(c)<33 or ord(c)>126 for c in access):
+        raise RuntimeError("LinkedIn access token has unexpected whitespace or control characters")
+    req=urllib.request.Request(
+        "https://api.linkedin.com/v2/userinfo",
+        headers={"Authorization":"Bearer "+access})
+    try:
+        with urllib.request.urlopen(req,timeout=20) as response:
+            identity=json.load(response)
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError("LinkedIn identity check rejected token: HTTP "+str(exc.code)) from None
+    subject=str(identity.get("sub",""))
+    if not re.fullmatch(r"[A-Za-z0-9_-]+",subject):
+        raise RuntimeError("LinkedIn userinfo did not return a valid member identifier; verify openid and profile scopes")
+    return "urn:li:person:"+subject
+
 
 def token():
     x=os.getenv("LINKEDIN_ACCESS_TOKEN","").strip()
@@ -121,15 +133,7 @@ def main():
     ap.add_argument("--verify-connection",action="store_true",help="Verify the token and authenticated personal member without posting")
     args=ap.parse_args()
     if args.verify_connection:
-        personal=author(PERSON)
-        req=urllib.request.Request("https://api.linkedin.com/v2/userinfo",headers={"Authorization":"Bearer "+token()})
-        try:
-            with urllib.request.urlopen(req,timeout=20) as response:
-                claimed=json.load(response).get("sub","")
-        except urllib.error.HTTPError as exc:
-            raise RuntimeError("LinkedIn identity check rejected token: HTTP "+str(exc.code)) from None
-        if personal!="urn:li:person:"+claimed:
-            raise RuntimeError("LinkedIn token belongs to a different personal account")
+        author(PERSON)
         print("VERIFIED personal LinkedIn OAuth identity; no post uploaded")
         return
     q,log=load()
