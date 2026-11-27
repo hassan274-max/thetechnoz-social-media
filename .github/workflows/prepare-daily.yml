@@ -52,7 +52,8 @@ jobs:
           git add assets/ posts-queue.json
           if [[ -n "$(git diff --cached --name-only)" ]]; then
             git commit -m "chore: prepare daily AI and Amazon PL posts"
-            git push
+            git pull --rebase origin main
+            git push origin HEAD:main
           else
             echo "No new content."
           fi
