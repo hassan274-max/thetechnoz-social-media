@@ -7,8 +7,10 @@ on:
       - "scripts/prepare_daily.py"
       - "scripts/meta_uniqueness.py"
   schedule:
-    # 09:00 PKT (04:00 UTC); prepare today's unique 11AM image
+    # 09:00 PKT: prepare TOMORROW's image, giving a 26-hour buffer.
     - cron: "0 4 * * *"
+    # 08:30 PKT: fallback if today's item was not prepared yesterday.
+    - cron: "30 3 * * *"
   workflow_dispatch:
     inputs:
       day_offset:
@@ -32,7 +34,7 @@ jobs:
         run: python3 -m pip install --user Pillow
       - name: Prepare original nonrepeating image and queue entry
         env:
-          DAY_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.day_offset || (github.event_name == 'push' && '1' || '0') }}
+          DAY_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.day_offset || (github.event_name == 'schedule' && github.event.schedule == '30 3 * * *' && '0' || '1') }}
         run: python3 scripts/prepare_daily.py --day-offset "$DAY_OFFSET"
       - name: Notify owner when fresh content cannot be prepared
         if: failure()
