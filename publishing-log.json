@@ -37,6 +37,11 @@
         "id": "18417518989091248",
         "published_at": "2026-11-27T07:56:34+00:00",
         "note": "Recovered from successful Graph API media_publish response in GitHub Actions run 45961874669; prevents duplicate posting"
+      },
+      "facebook": {
+        "status": "published",
+        "id": "100499538904729_1463253232621812",
+        "published_at": "2026-11-27T07:59:32.494638+00:00"
       }
     }
   }

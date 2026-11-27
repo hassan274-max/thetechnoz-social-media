@@ -20,6 +20,12 @@
       "status": "published",
       "published_at": "2026-11-26T16:58:14.312725Z",
       "delete_after": "2026-11-29T16:58:14.312725Z"
+    },
+    {
+      "path": "assets/daily-2026-11-27.png",
+      "status": "published",
+      "published_at": "2026-11-27T07:59:32.494907Z",
+      "delete_after": "2026-11-30T07:59:32.494907Z"
     }
   ]
 }
