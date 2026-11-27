@@ -30,6 +30,14 @@
         "id": "18171609349471478",
         "published_at": "2026-11-26T16:58:14.312376+00:00"
       }
+    },
+    "2026-11-27-image": {
+      "instagram": {
+        "status": "published",
+        "id": "18417518989091248",
+        "published_at": "2026-11-27T07:56:34+00:00",
+        "note": "Recovered from successful Graph API media_publish response in GitHub Actions run 45961874669; prevents duplicate posting"
+      }
     }
   }
 }
