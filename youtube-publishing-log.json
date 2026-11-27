@@ -1,5 +1,11 @@
 {
   "version": 1,
   "channel_id": "UCIwmarXnoB7vvssN9OxEeDA",
-  "posts": {}
+  "posts": {
+    "short-2026-11-27": {
+      "status": "attempted",
+      "claimed_at": "2026-11-27T14:27:21.367589+00:00",
+      "note": "Check Studio before any retry if outcome is uncertain"
+    }
+  }
 }
