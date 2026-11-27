@@ -33,7 +33,6 @@ jobs:
     env:
       LINKEDIN_DIRECT_ENABLED: ${{ vars.LINKEDIN_DIRECT_ENABLED }}
       LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
-      LINKEDIN_PERSON_URN: ${{ secrets.LINKEDIN_PERSON_URN }}
       EVENT_NAME: ${{ github.event_name }}
       EVENT_SCHEDULE: ${{ github.event.schedule }}
       INPUT_SLOT: ${{ inputs.slot }}
@@ -65,10 +64,11 @@ jobs:
       - name: Verify configured OAuth identity without publishing
         if: github.event_name != 'schedule'
         run: |
-          if [ -n "$LINKEDIN_ACCESS_TOKEN" ] && [ -n "$LINKEDIN_PERSON_URN" ]; then
+          if [ -n "$LINKEDIN_ACCESS_TOKEN" ]; then
             python scripts/linkedin_direct_publish.py --slot ai --verify-connection
           else
-            echo "Personal OAuth credentials not yet added; no publish attempted."
+            echo "ERROR: LINKEDIN_ACCESS_TOKEN secret missing. No publish attempted."
+            exit 1
           fi
       - name: Publish strictly due slot to personal profile when authorized
         env:
