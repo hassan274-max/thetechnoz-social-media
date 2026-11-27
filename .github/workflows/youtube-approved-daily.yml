@@ -2,6 +2,8 @@ name: Daily approved TheTechnoz YouTube Short
 on:
   schedule:
     - cron: "0 13 * * *" # 18:00 Pakistan Standard Time
+    - cron: "7,17,37 13 * * *" # Backup 18:07, 18:17 and 18:37 PKT
+    - cron: "7,27 14 * * *" # Backup 19:07 and 19:27 PKT
   push:
     branches: [main]
     paths:
@@ -55,7 +57,10 @@ jobs:
           if ledger.get("channel_id")!="UCIwmarXnoB7vvssN9OxEeDA":
               raise SystemExit("Channel mismatch in ledger")
           item=doc["id"] if doc else ""
-          due=os.environ["EVENT"]=="schedule" and bool(spec) and bool(doc) and item not in ledger.get("posts",{})
+          # Special workflow-file push also recovers a missed slot after 18:00 PKT.
+          # Never auto-upload again after any attempted claim; verify Studio first.
+          recovered_push=os.environ["EVENT"]=="push" and datetime.now(timezone(timedelta(hours=5))).hour>=18
+          due=(os.environ["EVENT"]=="schedule" or recovered_push) and bool(spec) and bool(doc) and item not in ledger.get("posts",{})
           print(f"Pakistan date: {day}; approved episode: {item or 'none'}; publish: {due}")
           with open(os.environ["GITHUB_OUTPUT"],"a") as f:
               f.write(f"due={str(due).lower()}\ndate={day}\nitem_id={item}\n")
