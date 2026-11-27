@@ -1,33 +1,21 @@
 {
-  "description": "Original advanced AI and Amazon PPC posts for user's personal LinkedIn profile only; no Metricool or company-page posting.",
+  "description": "LinkedIn-specific captions for approved daily image and reel media. Assets are sourced from the prepared Meta media queue. When no matching original caption exists, the media publisher uses that day's original caption.",
   "posts": [
     {
-      "id": "2026-11-28-ai",
-      "scheduled_at": "2026-11-28T10:00:00+05:00",
+      "id": "2026-11-28-image",
+      "scheduled_at": "2026-11-28T12:00:00+05:00",
+      "kind": "image",
       "status": "approved",
       "category": "AI/LLM",
-      "text": "AI agents need stop conditions—not just better prompts.\n\nAn agent can call tools, search documents and retry actions repeatedly. That doesn't prove the result is correct. In production, I would define a maximum step count, a tool-use budget, argument validation and an escalation route before granting autonomy.\n\nI evaluate agent systems across four dimensions:\n• Was the chosen tool appropriate?\n• Was the tool output interpreted correctly?\n• Did the task finish successfully?\n• What did a successful outcome cost?\n\nAn open-ended retry loop can be expensive without becoming more reliable. Reliable agents need explicit exit rules.\n\nWhat stopping condition do you enforce in production?\n\n#AIAgents #LLM #AIEngineering #AIAutomation #AgenticAI"
+      "text": "AI automation fails when success is defined as simply completing a workflow.\n\nBefore deploying an agent to handle operational work, I define its measurable output, accessible evidence, allowed tool calls, and escalation conditions.\n\nFour checks matter:\n• Did the system choose the correct action?\n• Was the underlying data current and trustworthy?\n• Can the result be verified independently?\n• What is the cost of reaching that result?\n\nAutomating the boring work is valuable. Automating an unchecked decision just scales uncertainty.\n\nWhich business process would you automate first—and how would you verify the result?\n\n#AIAgents #LLM #AIAutomation #AIEngineering #AppliedAI"
     },
     {
-      "id": "2026-11-28-amazon",
-      "scheduled_at": "2026-11-28T18:00:00+05:00",
+      "id": "2026-11-28-reel",
+      "scheduled_at": "2026-11-28T19:00:00+05:00",
+      "kind": "reel",
       "status": "approved",
       "category": "Amazon PPC",
-      "text": "When Amazon PPC spend rises but units stay flat, raising bids is rarely my first move.\n\nI first separate the diagnosis into traffic quality, search-term intent, unit conversion and economics.\n\nA campaign may generate more clicks while sending shoppers whose queries are only loosely related to the product. Even when CTR looks healthy, units per click can deteriorate.\n\nThe better comparison is between similar search terms and comparable time periods: spend, clicks, units, placement mix and contribution profit.\n\nIf the traffic mix has changed, fix relevance before increasing exposure. If relevance is stable but conversion is falling, inspect the offer and listing.\n\nWhat do you audit first when spend increases without more units?\n\n#AmazonPPC #AmazonAdvertising #AmazonPrivateLabel #Ecommerce #ConversionRate"
-    },
-    {
-      "id": "2026-11-29-ai",
-      "scheduled_at": "2026-11-29T10:00:00+05:00",
-      "status": "approved",
-      "category": "AI/LLM",
-      "text": "High RAG answer quality begins before generation.\n\nWhen a model produces an incorrect answer, teams often rewrite the prompt first. But a prompt cannot recover a missing source document.\n\nI would evaluate retrieval recall, evidence grounding and task success as separate measurements. A high similarity score can hide failures involving exact product IDs, dates, versions or uncommon terminology.\n\nThat is why lexical search, semantic retrieval, metadata filters and reranking should be compared on representative tasks instead of selected because of popularity.\n\nBefore swapping the language model, ask: what evidence did the retriever actually supply?\n\nWhich layer causes most of your RAG failures?\n\n#RAG #LLM #InformationRetrieval #AIResearch #MachineLearning"
-    },
-    {
-      "id": "2026-11-29-amazon",
-      "scheduled_at": "2026-11-29T18:00:00+05:00",
-      "status": "approved",
-      "category": "Amazon PPC",
-      "text": "TACoS is a useful Amazon KPI, but TACoS is not contribution profit.\n\nIt measures advertising spend relative to total sales. It does not account for every fulfillment cost, return, margin difference or inventory constraint.\n\nI would never optimize a mature brand solely toward a lower TACoS. The business question is whether the next advertising dollar generates profitable incremental unit demand.\n\nFor decision-making, I prefer a combined scorecard of spend, units sold, conversion, total sales, TACoS and contribution margin.\n\nA low TACoS can still conceal a weak commercial outcome.\n\nHow do you distinguish advertising efficiency from actual profitability?\n\n#AmazonPPC #TACOS #AmazonPrivateLabel #UnitEconomics #Ecommerce"
+      "text": "More Amazon PPC spend does not automatically mean more profitable demand.\n\nThe reel explains a common optimization mistake: treating additional clicks as evidence of growth.\n\nI prefer to compare units per click, search-term intent, conversion rate, placement mix, and contribution margin before increasing bids.\n\nIf clicks rise but units stay flat, the bottleneck may be traffic quality or listing conversion—not insufficient spend.\n\nWould you increase bids before reviewing search-term conversion?\n\n#AmazonPPC #AmazonPrivateLabel #ConversionRate #EcommerceAnalytics #AmazonAdvertising"
     }
   ]
 }
