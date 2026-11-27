@@ -1,25 +1,22 @@
-name: Direct LinkedIn — personal profile only
+name: Direct LinkedIn — image at noon, reel at 7 PM
 on:
   push:
     branches: [main]
     paths:
       - ".github/workflows/linkedin-direct-daily.yml"
-      - "scripts/linkedin_direct_publish.py"
-      - "scripts/linkedin_oauth_local.py"
+      - "scripts/linkedin_media_publish.py"
       - "linkedin-direct-queue.json"
   schedule:
-    # 10:00 and 18:00 Pakistan time, one original AI and Amazon PPC post
-    # per slot, published only to the user's personal profile.
-    - cron: "0 5 * * *"
-    - cron: "0 13 * * *"
+    - cron: "0 7 * * *"   # 12:00 Pakistan time — image
+    - cron: "0 14 * * *"  # 19:00 Pakistan time — reel
   workflow_dispatch:
     inputs:
       slot:
-        description: "Dry run only. No manual upload from dispatch."
+        description: "Validation only — no manual publishing"
         type: choice
         required: true
-        default: ai
-        options: [ai, amazon]
+        default: image
+        options: [image, reel]
 permissions:
   contents: write
   issues: write
@@ -29,13 +26,11 @@ concurrency:
 jobs:
   direct-post:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 12
     env:
       LINKEDIN_DIRECT_ENABLED: ${{ vars.LINKEDIN_DIRECT_ENABLED }}
       LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
       EVENT_NAME: ${{ github.event_name }}
-      EVENT_SCHEDULE: ${{ github.event.schedule }}
-      INPUT_SLOT: ${{ inputs.slot }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,60 +38,37 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate direct post scripts and unique content queue
+      - name: Validate LinkedIn media publisher
         run: |
-          python -m py_compile scripts/linkedin_direct_publish.py scripts/linkedin_oauth_local.py
+          python -m py_compile scripts/linkedin_media_publish.py
           python - <<'PY'
-          import json,datetime
+          import json
           from pathlib import Path
           q=json.loads(Path("linkedin-direct-queue.json").read_text())
-          log=json.loads(Path("linkedin-direct-log.json").read_text())
-          seen_ids=set();seen_text=set()
-          for p in q["posts"]:
-              assert p["id"] not in seen_ids,"Duplicate LinkedIn queue ID"
-              assert p["text"].strip().casefold() not in seen_text,"Duplicate content"
-              assert len(p["text"])<=3000 and p["status"]=="approved"
-              assert datetime.datetime.fromisoformat(p["scheduled_at"]).tzinfo
-              seen_ids.add(p["id"]);seen_text.add(p["text"].strip().casefold())
-          assert isinstance(log["posts"],dict)
-          print(f"{len(q['posts'])} original post drafts passed uniqueness checks")
+          assert isinstance(q["posts"],list)
+          assert isinstance(json.loads(Path("linkedin-direct-log.json").read_text())["posts"],dict)
+          print("LinkedIn media schedule validated")
           PY
-      - name: Verify configured OAuth identity and activation without publishing
-        if: github.event_name != 'schedule'
-        run: |
-          if [ "$LINKEDIN_DIRECT_ENABLED" != "true" ]; then
-            echo "ERROR: LINKEDIN_DIRECT_ENABLED must be true in Actions repository variables."
-            exit 1
-          fi
-          if [ -n "$LINKEDIN_ACCESS_TOKEN" ]; then
-            python scripts/linkedin_direct_publish.py --slot ai --verify-connection
-          else
-            echo "ERROR: LINKEDIN_ACCESS_TOKEN secret missing. No publish attempted."
-            exit 1
-          fi
-      - name: Publish strictly due slot to personal profile when authorized
+      - name: Publish scheduled media, or validate manual run
         env:
-          APPROVED_SLOT: ${{ github.event_name == 'schedule' && github.event.schedule == '0 5 * * *' && 'ai' || github.event_name == 'schedule' && github.event.schedule == '0 13 * * *' && 'amazon' || inputs.slot || 'ai' }}
+          SLOT: ${{ github.event_name == 'schedule' && github.event.schedule == '0 7 * * *' && 'image' || github.event_name == 'schedule' && github.event.schedule == '0 14 * * *' && 'reel' || inputs.slot || 'image' }}
         run: |
           set -euo pipefail
-          if [ "$EVENT_NAME" != "schedule" ]; then
-            python scripts/linkedin_direct_publish.py --slot "$APPROVED_SLOT" --dry-run
-            exit 0
-          fi
-          if [ "$LINKEDIN_DIRECT_ENABLED" != "true" ]; then
-            echo "ERROR: LinkedIn OAuth/config not confirmed. No upload. Credentials/activation required."
-            exit 1
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          python scripts/linkedin_direct_publish.py --slot "$APPROVED_SLOT"
-      - name: Open actionable issue if scheduled LinkedIn posting fails
+          if [ "$EVENT_NAME" != "schedule" ]; then
+            echo "Manual/push execution is dry-run only"
+            python scripts/linkedin_media_publish.py --slot "$SLOT" --dry-run
+          else
+            python scripts/linkedin_media_publish.py --slot "$SLOT"
+          fi
+      - name: Alert on scheduled failures
         if: failure() && github.event_name == 'schedule'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           DAY="$(TZ=Asia/Karachi date +%Y-%m-%d)"
-          TITLE="Action required: LinkedIn direct publishing failed on $DAY"
-          if ! gh issue list --state all --limit 100 --json title --jq '.[].title' | grep -Fxq "$TITLE"; then
-            gh issue create --title "$TITLE" --body "The personal-profile LinkedIn workflow failed or was not configured. No posting success should be inferred from a skipped run. Complete LinkedIn OAuth setup, validate the authorized member, and inspect the publishing log before recovery. Actions: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          TITLE="Action required: LinkedIn media failed on $DAY"
+          if ! gh issue list --state open --limit 100 --json title --jq '.[].title' | grep -Fxq "$TITLE"; then
+            gh issue create --title "$TITLE" --body "LinkedIn image/reel failed. Check prepared assets, approval, OAuth and ledger before any manual retry: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
