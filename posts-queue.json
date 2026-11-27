@@ -93,5 +93,6 @@
       ],
       "topic_category": "Amazon"
     }
-  ]
+  ],
+  "token_recovery_check": "2026-11-27 retry after new Meta token saved; preserve all post IDs and historical records"
 }
