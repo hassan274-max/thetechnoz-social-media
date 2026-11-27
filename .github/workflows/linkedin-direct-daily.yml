@@ -61,9 +61,13 @@ jobs:
           assert isinstance(log["posts"],dict)
           print(f"{len(q['posts'])} original post drafts passed uniqueness checks")
           PY
-      - name: Verify configured OAuth identity without publishing
+      - name: Verify configured OAuth identity and activation without publishing
         if: github.event_name != 'schedule'
         run: |
+          if [ "$LINKEDIN_DIRECT_ENABLED" != "true" ]; then
+            echo "ERROR: LINKEDIN_DIRECT_ENABLED must be true in Actions repository variables."
+            exit 1
+          fi
           if [ -n "$LINKEDIN_ACCESS_TOKEN" ]; then
             python scripts/linkedin_direct_publish.py --slot ai --verify-connection
           else
