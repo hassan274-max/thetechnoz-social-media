@@ -57,7 +57,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ "$EVENT_NAME" = "push" ] && git diff-tree --no-commit-id --name-only -r HEAD | grep -Fxq "linkedin-post-now.json"; then
+          if [ "$EVENT_NAME" = "push" ] && python -c 'import json,datetime; from pathlib import Path; p=json.loads(Path("linkedin-post-now.json").read_text()); assert p.get("approved") is True and p.get("date")==datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=5))).date().isoformat() and p.get("kind")=="image"'; then
             echo "Explicit immediate one-time image requested"
             python scripts/linkedin_media_publish.py --slot image --now
           elif [ "$EVENT_NAME" != "schedule" ]; then
