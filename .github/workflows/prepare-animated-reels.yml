@@ -5,8 +5,10 @@ on:
     paths:
       - ".github/workflows/prepare-animated-reels.yml"
   schedule:
-    # 12:00 Pakistan Standard Time; publish at 19:00 via existing Reel workflow.
+    # 12:00 PKT: pre-render TOMORROW's Reel well before publication.
     - cron: "0 7 * * *"
+    # 08:00 PKT: fallback if the advance preparation was missed.
+    - cron: "0 3 * * *"
   workflow_dispatch:
     inputs:
       day_offset:
@@ -45,7 +47,7 @@ jobs:
           test "$(stat -c%s voices-v1.0.bin)" -gt 1000000
       - name: Render reviewed animated educational Reel and check all queued post uniqueness
         env:
-          DAY_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.day_offset || '0' }}
+          DAY_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.day_offset || (github.event_name == 'schedule' && github.event.schedule == '0 3 * * *' && '0' || '1') }}
         run: |
           python -m py_compile scripts/meta_uniqueness.py scripts/prepare_animated_reels.py scripts/render_educational_short.py
           python scripts/prepare_animated_reels.py --day-offset "$DAY_OFFSET"
