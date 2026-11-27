@@ -1,9 +1,11 @@
 name: Daily approved TheTechnoz YouTube Short
 on:
   schedule:
+    - cron: "45 12 * * *" # Start rendering at 17:45 PKT; hold until 18:00 PKT
     - cron: "0 13 * * *" # 18:00 Pakistan Standard Time
     - cron: "7,17,37 13 * * *" # Backup 18:07, 18:17 and 18:37 PKT
     - cron: "7,27 14 * * *" # Backup 19:07 and 19:27 PKT
+    - cron: "7 15 * * *" # Last backup 20:07 PKT
   push:
     branches: [main]
     paths:
@@ -30,6 +32,8 @@ jobs:
       YOUTUBE_TOKEN_JSON: ${{ secrets.YOUTUBE_TOKEN_JSON }}
     steps:
       - uses: actions/checkout@v4
+      - name: Refresh publication ledger before planning
+        run: git pull --ff-only origin main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -86,6 +90,38 @@ jobs:
           set -euo pipefail
           python scripts/build_youtube_video.py --kind short --date "${{ steps.plan.outputs.date }}" --output /tmp/thetechnoz-youtube-video.mp4
           python scripts/validate_youtube_video.py --kind short --file /tmp/thetechnoz-youtube-video.mp4
+      - name: Hold early preparation until the exact 18:00 PKT upload window
+        if: steps.plan.outputs.due == 'true'
+        run: |
+          python - <<'PY'
+          from datetime import datetime, timezone, timedelta
+          import time
+          pkt=timezone(timedelta(hours=5))
+          now=datetime.now(pkt)
+          target=now.replace(hour=18, minute=0, second=0, microsecond=0)
+          remaining=(target-now).total_seconds()
+          if 0 < remaining <= 1200:
+              print(f"Video ready early. Holding {remaining:.0f} seconds until 18:00 PKT.")
+              time.sleep(remaining)
+          elif remaining > 1200:
+              raise SystemExit("Unexpected early start: refusing to publish before its window")
+          else:
+              print("Publishing window reached or passed; proceeding.")
+          PY
+      - name: Refresh duplicate claims before upload
+        if: steps.plan.outputs.due == 'true'
+        run: |
+          set -euo pipefail
+          git pull --ff-only origin main
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=json.loads(Path("youtube-publishing-log.json").read_text())
+          item="${{ steps.plan.outputs.item_id }}"
+          if item in p.get("posts",{}):
+              raise SystemExit("A separate run already claimed this Short; refusing duplicate upload")
+          print("Upload slot not yet claimed; safe to proceed.")
+          PY
       - name: Persist duplicate-safe claim before upload
         if: steps.plan.outputs.due == 'true'
         env:
@@ -147,3 +183,13 @@ jobs:
           git add youtube-publishing-log.json
           git commit -m "confirm YouTube episode $ITEM_ID"
           git push origin HEAD:main
+      - name: Notify owner of failed YouTube publishing or uncertain upload
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DAY="$(TZ=Asia/Karachi date +%Y-%m-%d)"
+          TITLE="Action required: YouTube Short upload failed on ${DAY}"
+          if ! gh issue list --state all --limit 100 --json title --jq '.[].title' | grep -Fxq "$TITLE"; then
+            gh issue create --title "$TITLE" --body "The TheTechnoz 18:00 PKT YouTube publisher failed. If the ledger says attempted, do NOT blindly retry: first verify YouTube Studio for an already uploaded video. Once confirmed, reconcile the log before re-trying. Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
