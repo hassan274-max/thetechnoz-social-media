@@ -1,0 +1,20 @@
+name: Check Meta authorization without publishing
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/check-meta-auth.yml"
+      - "scripts/meta_token_diagnostics.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only Facebook Page and Instagram credential check
+        env:
+          META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+        run: python3 scripts/meta_token_diagnostics.py
