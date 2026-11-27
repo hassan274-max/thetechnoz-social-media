@@ -2,6 +2,14 @@
   "description": "LinkedIn-specific captions for approved daily image and reel media. Assets are sourced from the prepared Meta media queue. When no matching original caption exists, the media publisher uses that day's original caption.",
   "posts": [
     {
+      "id": "2026-11-27-image",
+      "scheduled_at": "2026-11-27T20:00:00+05:00",
+      "kind": "image",
+      "status": "approved",
+      "category": "Amazon PPC",
+      "text": "Your Amazon PPC report shows more orders. But did it show more units—or more profit?\n\nAn order is a transaction. Units sold measure product volume. Mixing them up can distort decisions about PPC scaling, replenishment, and actual demand.\n\nConsider an illustrative campaign comparison:\n\nPeriod A: 100 orders, 125 units, $1,000 spend.\nPeriod B: 110 orders, 112 units, $1,200 spend.\n\nOrders increased by 10%, yet units declined by 10.4% while advertising spend increased by 20%. Calling Period B an improvement based on order count alone would be misleading.\n\nFor a stronger PPC diagnosis, I track:\n1. Units sold alongside orders and units per order.\n2. Spend per unit and ad-attributed contribution margin.\n3. Search-term intent and placement changes.\n4. Conversion rate on comparable traffic—not blended averages alone.\n5. Organic and paid sales together to assess whether growth is incremental.\n\nThe goal is not simply more clicks or a better-looking dashboard. It is profitable unit velocity.\n\nWhen evaluating a campaign, which metric do you prioritize: orders, units sold, or contribution profit?\n\n#AmazonPPC #AmazonAdvertising #AmazonPrivateLabel #EcommerceAnalytics #UnitEconomics"
+    },
+    {
       "id": "2026-11-28-image",
       "scheduled_at": "2026-11-28T12:00:00+05:00",
       "kind": "image",
