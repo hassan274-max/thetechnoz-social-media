@@ -4,7 +4,7 @@ Uses the existing Meta Page token and the same published-ID ledger as images.
 """
 import json, os, sys, time, urllib.request, urllib.error
 from datetime import datetime, timezone
-from publish_meta import ROOT, QUEUE, LOG, TOKEN, ENABLED, DRY_RUN, IG_ID, graph, save, load, ensure_manifest, utcnow
+from publish_meta import ROOT, QUEUE, LOG, TOKEN, ENABLED, DRY_RUN, IG_ID, graph, facebook_page_token, save, load, ensure_manifest, utcnow
 from meta_uniqueness import check_queue
 from meta_discovery import instagram_caption
 
@@ -20,10 +20,10 @@ def check_video(url):
         if mime not in ("video/mp4","application/octet-stream"):
             raise RuntimeError(f"Unexpected video Content-Type {mime}")
 
-def upload_hosted_reel(video_id,url):
+def upload_hosted_reel(video_id,url,page_access_token):
     endpoint=f"https://rupload.facebook.com/video-upload/v27.0/{video_id}"
     request=urllib.request.Request(endpoint,data=b"",method="POST",headers={
-        "Authorization":"OAuth "+TOKEN,"file_url":url,
+        "Authorization":"OAuth "+page_access_token,"file_url":url,
         "User-Agent":"TheTechnozSocialPublisher/1.0"})
     try:
         with urllib.request.urlopen(request,timeout=100) as response:
@@ -34,12 +34,13 @@ def upload_hosted_reel(video_id,url):
         raise RuntimeError("Facebook Reel CDN upload not confirmed")
 
 def facebook_reel(url,caption):
-    started=graph("POST","me/video_reels",{"upload_phase":"start"})
+    page_access_token=facebook_page_token()
+    started=graph("POST","me/video_reels",{"upload_phase":"start"},token_override=page_access_token)
     vid=started["video_id"]
-    upload_hosted_reel(vid,url)
+    upload_hosted_reel(vid,url,page_access_token)
     ended=graph("POST","me/video_reels",{
         "upload_phase":"finish","video_id":vid,"video_state":"PUBLISHED",
-        "description":caption,"title":caption.splitlines()[0][:100]})
+        "description":caption,"title":caption.splitlines()[0][:100]},token_override=page_access_token)
     if not ended.get("success"):
         raise RuntimeError("Facebook Reel finish was not confirmed")
     return vid
