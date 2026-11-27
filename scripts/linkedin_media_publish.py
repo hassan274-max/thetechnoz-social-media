@@ -53,12 +53,17 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--slot",choices=["image","reel"],required=True)
     parser.add_argument("--dry-run",action="store_true")
+    parser.add_argument("--now",action="store_true",help="Explicit one-time immediate image publish via GitHub trigger")
     args=parser.parse_args()
     now=dt.datetime.now(PKT); day=now.date().isoformat()
     planned=dt.datetime.combine(now.date(),dt.time(12 if args.slot=="image" else 19),PKT)
-    if now<planned or now-planned>dt.timedelta(hours=3):
+    if (now<planned or now-planned>dt.timedelta(hours=3)) and not args.now:
         print("Outside scheduled posting window; no upload");return
     key=day+"-"+args.slot
+    if args.now:
+        marker=json.loads((ROOT/"linkedin-post-now.json").read_text())
+        if args.slot!="image" or marker.get("id")!=key or marker.get("date")!=day or marker.get("approved") is not True:
+            raise RuntimeError("Immediate publishing not explicitly authorized for this item")
     meta=json.loads(META.read_text())["posts"]
     matches=[p for p in meta if p.get("id")==key and p.get("kind")==args.slot]
     if len(matches)!=1:raise RuntimeError("Missing unique, prepared Meta "+args.slot+" for "+day+"; no upload")
