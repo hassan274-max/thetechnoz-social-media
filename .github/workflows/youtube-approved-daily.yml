@@ -1,11 +1,11 @@
 name: Daily approved TheTechnoz YouTube Short
 on:
   schedule:
-    - cron: "45 12 * * *" # Start rendering at 17:45 PKT; hold until 18:00 PKT
-    - cron: "0 13 * * *" # 18:00 Pakistan Standard Time
-    - cron: "7,17,37 13 * * *" # Backup 18:07, 18:17 and 18:37 PKT
-    - cron: "7,27 14 * * *" # Backup 19:07 and 19:27 PKT
-    - cron: "7 15 * * *" # Last backup 20:07 PKT
+    # Start after 18:00 PKT; off-minute recovery slots reduce missed cron risk.
+    - cron: "7,17,37,47 13 * * *" # 18:07 / 18:17 / 18:37 / 18:47 PKT
+    - cron: "7,27,47 14 * * *"    # 19:07 / 19:27 / 19:47 PKT
+    - cron: "7,37 15 * * *"       # 20:07 / 20:37 PKT
+    - cron: "7 16 * * *"          # 21:07 PKT recovery
   push:
     branches: [main]
     paths:
@@ -20,6 +20,7 @@ on:
         options: [verify_connection]
 permissions:
   contents: write
+  issues: write
 concurrency:
   group: thetechnoz-approved-youtube-publisher
   cancel-in-progress: false
@@ -53,7 +54,8 @@ jobs:
           sys.path.insert(0,"scripts")
           from short_episode_specs import episode
           from youtube_editorial import scheduled_topic
-          day=datetime.now(timezone(timedelta(hours=5))).date()
+          now_pkt=datetime.now(timezone(timedelta(hours=5)))
+          day=now_pkt.date()
           valid=date(2026,11,27)<=day<=date(2026,12,10)
           spec=episode(day) if valid else None
           doc=scheduled_topic(day) if valid else None
@@ -63,8 +65,11 @@ jobs:
           item=doc["id"] if doc else ""
           # Special workflow-file push also recovers a missed slot after 18:00 PKT.
           # Never auto-upload again after any attempted claim; verify Studio first.
-          recovered_push=os.environ["EVENT"]=="push" and datetime.now(timezone(timedelta(hours=5))).hour>=18
-          due=(os.environ["EVENT"]=="schedule" or recovered_push) and bool(spec) and bool(doc) and item not in ledger.get("posts",{})
+          # A delayed schedule arriving before 18:00 must NOT publish or fail.
+          # Off-minute later runs recover the same approved local-day episode.
+          in_window=18<=now_pkt.hour<=23
+          recovered_push=os.environ["EVENT"]=="push" and in_window
+          due=(os.environ["EVENT"]=="schedule" or recovered_push) and in_window and bool(spec) and bool(doc) and item not in ledger.get("posts",{})
           print(f"Pakistan date: {day}; approved episode: {item or 'none'}; publish: {due}")
           with open(os.environ["GITHUB_OUTPUT"],"a") as f:
               f.write(f"due={str(due).lower()}\ndate={day}\nitem_id={item}\n")
