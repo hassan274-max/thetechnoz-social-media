@@ -108,6 +108,20 @@
         "facebook",
         "instagram"
       ]
+    },
+    {
+      "id": "2026-11-29-image",
+      "kind": "image",
+      "scheduled_at": "2026-11-29T06:00:00Z",
+      "image_url": "https://raw.githubusercontent.com/hassan274-max/thetechnoz-social-media/main/assets/daily-2026-11-29.png",
+      "video_url": null,
+      "path": "assets/daily-2026-11-29.png",
+      "caption": "CLICKS ARE NOT SALES\n\nHigh traffic with low conversion? Check search-term relevance, pricing, reviews, delivery promise and listing quality before increasing your PPC budget.\n\nTheTechnoz Solutions — Where AI Meets Business.\n\n#TheTechnozSolutions #AmazonPrivateLabel #AmazonPPC #ConversionRate #Ecommerce",
+      "topic_category": "Amazon PL",
+      "platforms": [
+        "facebook",
+        "instagram"
+      ]
     }
   ],
   "token_recovery_check": "2026-11-27 retry Facebook with Page-scoped token; confirmed Instagram ID 18417518989091248 is already logged and must be skipped.",
