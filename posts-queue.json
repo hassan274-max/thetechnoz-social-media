@@ -111,6 +111,6 @@
     }
   ],
   "token_recovery_check": "2026-11-27 retry Facebook with Page-scoped token; confirmed Instagram ID 18417518989091248 is already logged and must be skipped.",
-  "recovery_publish_request": "2026-11-27 Nov26 missed image requested immediate publication; unique entry 2026-11-26-image",
+  "recovery_publish_request": "2026-11-28: user explicitly requests recovery of missed 11:00 PKT approved image, Facebook and Instagram only; retain original content and duplicate checks",
   "reel_recovery_trigger": "2026-11-27 19:15 PKT: scheduled Reel run absent; retry unique due Reel using existing ledger"
 }
