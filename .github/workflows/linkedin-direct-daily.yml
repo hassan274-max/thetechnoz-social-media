@@ -8,8 +8,10 @@ on:
       - "linkedin-direct-queue.json"
       - "linkedin-post-now.json"
   schedule:
-    - cron: "0 7 * * *"   # 12:00 Pakistan time — image
-    - cron: "0 14 * * *"  # 19:00 Pakistan time — reel
+    - cron: "7,17,37 7 * * *"  # 12:07 / 12:17 / 12:37 PKT, image recovery
+    - cron: "7 8 * * *"       # 13:07 PKT, image backup
+    - cron: "7,17,37 14 * * *" # 19:07 / 19:17 / 19:37 PKT, reel recovery
+    - cron: "7 15 * * *"      # 20:07 PKT, reel backup
   workflow_dispatch:
     inputs:
       slot:
@@ -32,6 +34,7 @@ jobs:
       LINKEDIN_DIRECT_ENABLED: ${{ vars.LINKEDIN_DIRECT_ENABLED }}
       LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
       EVENT_NAME: ${{ github.event_name }}
+      MARKER_CHANGED: ${{ contains(toJSON(github.event.head_commit.modified), 'linkedin-post-now.json') || contains(toJSON(github.event.head_commit.added), 'linkedin-post-now.json') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,12 +55,12 @@ jobs:
           PY
       - name: Publish scheduled media, or validate manual run
         env:
-          SLOT: ${{ github.event_name == 'schedule' && github.event.schedule == '0 7 * * *' && 'image' || github.event_name == 'schedule' && github.event.schedule == '0 14 * * *' && 'reel' || inputs.slot || 'image' }}
+          SLOT: ${{ github.event_name == 'schedule' && (github.event.schedule == '7,17,37 7 * * *' || github.event.schedule == '7 8 * * *') && 'image' || github.event_name == 'schedule' && 'reel' || inputs.slot || 'image' }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ "$EVENT_NAME" = "push" ] && python -c 'import json,datetime; from pathlib import Path; p=json.loads(Path("linkedin-post-now.json").read_text()); assert p.get("approved") is True and p.get("date")==datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=5))).date().isoformat() and p.get("kind")=="image"'; then
+          if [ "$EVENT_NAME" = "push" ] && [ "$MARKER_CHANGED" = "true" ] && python -c 'import json,datetime; from pathlib import Path; p=json.loads(Path("linkedin-post-now.json").read_text()); assert p.get("approved") is True and p.get("date")==datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=5))).date().isoformat() and p.get("kind")=="image"'; then
             echo "Explicit immediate one-time image requested"
             python scripts/linkedin_media_publish.py --slot image --now
           elif [ "$EVENT_NAME" != "schedule" ]; then
