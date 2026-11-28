@@ -1,8 +1,9 @@
 name: Publish animated educational Reels to Facebook and Instagram
 on:
   schedule:
-    # 19:05 Pakistan time, allowing five minutes after target slot.
-    - cron: "5 14 * * *"
+    # Main Reel delivery: 19:11 PKT; off-minute backup at 19:31 and 20:11.
+    - cron: "11,31 14 * * *"
+    - cron: "11 15 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
