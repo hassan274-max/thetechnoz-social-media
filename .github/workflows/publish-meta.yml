@@ -5,8 +5,11 @@ on:
     paths:
       - "posts-queue.json"
   schedule:
-    # 11:00 and 19:00 Pakistan Standard Time (UTC+5).
-    - cron: "0 6,14 * * *"
+    # Due time remains 11:00 / 19:00 PKT; multiple off-minute dispatch attempts.
+    - cron: "7,27,47 6 * * *"   # 11:07 / 11:27 / 11:47 PKT
+    - cron: "7 7 * * *"         # 12:07 PKT backup
+    - cron: "9,29,49 14 * * *"  # 19:09 / 19:29 / 19:49 PKT
+    - cron: "9 15 * * *"        # 20:09 PKT backup
   workflow_dispatch:
     inputs:
       dry_run:
