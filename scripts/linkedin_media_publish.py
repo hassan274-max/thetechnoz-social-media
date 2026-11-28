@@ -57,8 +57,8 @@ def main():
     args=parser.parse_args()
     now=dt.datetime.now(PKT); day=now.date().isoformat()
     planned=dt.datetime.combine(now.date(),dt.time(12 if args.slot=="image" else 19),PKT)
-    if (now<planned or now-planned>dt.timedelta(hours=3)) and not args.now:
-        print("Outside scheduled posting window; no upload");return
+    if now<planned and not args.now:
+        print("Scheduled slot not yet due; no upload");return
     key=day+"-"+args.slot
     if args.now:
         marker=json.loads((ROOT/"linkedin-post-now.json").read_text())
